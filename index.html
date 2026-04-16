@@ -42,6 +42,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--b0);color:var(--t);min-he
 .tool .cta{font-size:12px;color:var(--or);font-weight:600;display:inline-flex;align-items:center;gap:4px}
 .tool .cta::after{content:'→';transition:transform .2s}
 .tool:hover .cta::after{transform:translateX(4px)}
+.tool .beta{position:absolute;top:10px;right:10px;background:rgba(167,139,250,.15);color:#a78bfa;border:1px solid rgba(167,139,250,.4);font-size:9px;font-weight:700;padding:3px 8px;border-radius:10px;letter-spacing:.5px;text-transform:uppercase}
 
 .tool.featured{background:linear-gradient(135deg,var(--ord),var(--b2));border-color:rgba(245,158,11,.4)}
 .tool.soon{opacity:.5;cursor:not-allowed}
@@ -124,16 +125,42 @@ body{font-family:'DM Sans',sans-serif;background:var(--b0);color:var(--t);min-he
   </section>
 
   <section class="section">
-    <h2>Bientôt</h2>
+    <h2>Faisabilité urbaine — En développement</h2>
     <div class="tools-grid">
 
-      <div class="tool soon">
+      <a href="faisabilite.html" class="tool">
+        <span class="beta">Bêta</span>
         <div class="ico">📐</div>
-        <div class="tag">Faisabilité urbaine</div>
-        <h3>Analyseur PLU/PLUi</h3>
-        <div class="desc">Analyse de constructibilité parcellaire à partir des règles d&#39;urbanisme. Calcul automatique du gabarit, reculs, hauteurs et SDP autorisée selon le PLU communal.</div>
-        <div class="cta">En développement</div>
-      </div>
+        <div class="tag">Analyseur principal</div>
+        <h3>Faisabilité PLU</h3>
+        <div class="desc">Analyse de constructibilité parcellaire avec rendu 2D/3D. Calcul automatique du gabarit, reculs réglementaires, hauteur et SDP autorisée selon le PLU/PLUi communal. Récupération auto via API GPU et BAN.</div>
+        <div class="cta">Ouvrir l&#39;outil</div>
+      </a>
+
+      <a href="collecteur_plu.html" class="tool">
+        <span class="beta">Bêta</span>
+        <div class="ico">🗂️</div>
+        <div class="tag">Base de règles</div>
+        <h3>Collecteur PLU</h3>
+        <div class="desc">Constitution progressive de la base de règles PLU à partir de l&#39;API GPU et de l&#39;extraction IA. Une analyse par commune, stockée en local pour éviter les requêtes répétées.</div>
+        <div class="cta">Ouvrir l&#39;outil</div>
+      </a>
+
+      <a href="base_plu.html" class="tool">
+        <span class="beta">Bêta</span>
+        <div class="ico">📚</div>
+        <div class="tag">Consultation</div>
+        <h3>Base PLU</h3>
+        <div class="desc">Visualisation et consultation de la base de règles PLU collectées. Recherche par commune, code INSEE ou type de zone.</div>
+        <div class="cta">Ouvrir l&#39;outil</div>
+      </a>
+
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Bientôt</h2>
+    <div class="tools-grid">
 
       <div class="tool soon">
         <div class="ico">📊</div>

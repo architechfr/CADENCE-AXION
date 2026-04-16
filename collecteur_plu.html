@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Collecteur Base PLU - Ile-de-France</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',system-ui;background:#0f172a;color:#e2e8f0;min-height:100vh}
+
+.header{background:#1e293b;padding:16px 24px;border-bottom:1px solid #334155;display:flex;align-items:center;justify-content:space-between}
+.header-left{display:flex;align-items:center;gap:12px}
+.header h1{font-size:16px;font-weight:700;color:#fff}
+.header .sub{font-size:11px;color:#94a3b8;margin-top:2px}
+.header-db{display:flex;align-items:center;gap:8px;background:#0f172a;padding:6px 14px;border-radius:8px;border:1px solid #334155}
+.header-db .db-dot{width:8px;height:8px;border-radius:50%;background:#059669;flex-shrink:0}
+.header-db .db-dot.empty{background:#64748b}
+.header-db .db-label{font-size:11px;color:#94a3b8}
+.header-db .db-count{font-size:13px;font-weight:700;color:#fff}
+.wrap{max-width:1200px;margin:0 auto;padding:20px}
+
+/* SEARCH */
+.search-section{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:20px}
+.search-title{font-size:14px;font-weight:700;color:#fff;margin-bottom:4px}
+.search-help{font-size:11px;color:#94a3b8;margin-bottom:14px}
+.search-bar{position:relative}
+.search-bar input{width:100%;padding:12px 16px 12px 40px;border:1px solid #475569;border-radius:10px;background:#0f172a;color:#e2e8f0;font-family:inherit;font-size:14px;outline:none;transition:border-color .2s}
+.search-bar input:focus{border-color:#2563eb}
+.search-bar .search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#64748b;font-size:16px}
+.search-bar .search-status{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:11px;color:#64748b}
+#search-sugs{display:none;position:absolute;top:52px;left:0;right:0;background:#1e293b;border:1px solid #475569;border-radius:10px;z-index:99;box-shadow:0 8px 24px rgba(0,0,0,.5);max-height:300px;overflow-y:auto}
+.sug-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid #33415544;transition:background .1s;display:flex;align-items:center;justify-content:space-between}
+.sug-item:hover{background:#334155}
+.sug-item:last-child{border-bottom:none}
+.sug-name{font-weight:600;color:#e2e8f0}
+.sug-detail{font-size:11px;color:#64748b;margin-left:8px}
+.sug-badge{font-size:10px;color:#34d399;background:#05966920;padding:2px 8px;border-radius:4px}
+
+/* COLLECTE DEPT */
+.collect-section{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:16px 20px;margin-bottom:20px}
+.collect-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.collect-label{font-size:12px;font-weight:600;color:#e2e8f0;white-space:nowrap}
+.collect-help{font-size:10px;color:#64748b;margin-top:6px}
+select{padding:8px 12px;border:1px solid #475569;border-radius:8px;background:#0f172a;color:#e2e8f0;font-family:inherit;font-size:12px}
+.btn{padding:8px 16px;border:none;border-radius:8px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-blue{background:#2563eb;color:#fff}.btn-blue:hover{background:#1d4ed8}
+.btn-red{background:#dc2626;color:#fff}.btn-red:hover{background:#b91c1c}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.stat{background:#1e293b;border:1px solid #334155;border-radius:10px;padding:14px}
+.stat-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#64748b;margin-bottom:4px}
+.stat-val{font-size:24px;font-weight:700;color:#fff}
+.stat-sub{font-size:10px;color:#64748b;margin-top:2px}
+
+/* PROGRESS */
+.progress-wrap{background:#1e293b;border:1px solid #334155;border-radius:10px;padding:16px;margin-bottom:20px}
+.progress-bar{height:8px;background:#334155;border-radius:4px;overflow:hidden;margin-bottom:8px}
+.progress-fill{height:100%;background:linear-gradient(90deg,#2563eb,#059669);border-radius:4px;transition:width .3s}
+.progress-text{font-size:11px;color:#94a3b8;display:flex;justify-content:space-between}
+
+/* LOG */
+.log-toggle{font-size:11px;color:#475569;cursor:pointer;margin-bottom:8px;display:flex;align-items:center;gap:4px;user-select:none}
+.log-toggle:hover{color:#94a3b8}
+.log-wrap{background:#0f172a;border:1px solid #334155;border-radius:10px;padding:12px;margin-bottom:20px;max-height:150px;overflow-y:auto;display:none}
+.log-wrap.open{display:block}
+.log{font-family:'DM Mono',monospace;font-size:11px;line-height:1.6;color:#64748b;white-space:pre-wrap}
+.log .ok{color:#34d399}.log .err{color:#f87171}.log .info{color:#60a5fa}.log .warn{color:#fbbf24}
+
+/* RECENT */
+.recent-title{font-size:12px;font-weight:600;color:#94a3b8;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.recent-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin-bottom:20px}
+.recent-card{background:#1e293b;border:1px solid #334155;border-radius:10px;padding:12px;cursor:pointer;transition:all .15s}
+.recent-card:hover{border-color:#2563eb;transform:translateY(-1px)}
+.recent-card .rc-name{font-size:13px;font-weight:600;color:#e2e8f0}
+.recent-card .rc-meta{font-size:10px;color:#64748b;margin-top:4px}
+.recent-card .rc-tags{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}
+
+/* TABLE */
+.dep-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px}
+.dep-tab{padding:5px 12px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid #334155;background:#1e293b;color:#94a3b8;transition:all .15s}
+.dep-tab:hover,.dep-tab.on{background:#2563eb;color:#fff;border-color:#2563eb}
+.dep-tab .cnt{font-size:9px;opacity:.7;margin-left:4px}
+.table-section{background:#1e293b;border:1px solid #334155;border-radius:12px;overflow:hidden}
+.table-header{padding:12px 16px;border-bottom:1px solid #334155;display:flex;align-items:center;justify-content:space-between}
+.table-title{font-size:13px;font-weight:700;color:#fff}
+.table-count{font-size:11px;color:#64748b}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{text-align:left;padding:8px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#64748b;border-bottom:2px solid #334155;position:sticky;top:0;background:#1e293b}
+td{padding:6px 10px;border-bottom:1px solid #0f172a;color:#cbd5e1}
+tr:hover td{background:#0f172a44}
+.table-body{max-height:400px;overflow-y:auto}
+.tag{display:inline-block;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:600;text-transform:uppercase}
+.t-plui{background:#059669;color:#fff}.t-plu{background:#2563eb;color:#fff}.t-pos{background:#d97706;color:#fff}.t-cc{background:#64748b;color:#fff}.t-rnu{background:#dc2626;color:#fff}
+.t-prod{background:#065f46;color:#34d399}.t-arr{background:#78350f;color:#fbbf24}
+.btn-action{cursor:pointer;border:1px solid #475569;background:#1e293b;color:#60a5fa;padding:3px 10px;border-radius:4px;font-size:10px;font-weight:600;transition:all .15s}
+.btn-action:hover{background:#2563eb;color:#fff;border-color:#2563eb}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#059669;color:#fff;padding:10px 20px;border-radius:8px;font-size:12px;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.4);z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:40px 20px;color:#64748b}
+.empty-state .empty-icon{font-size:32px;margin-bottom:10px}
+.empty-state .empty-title{font-size:14px;color:#94a3b8;font-weight:600;margin-bottom:4px}
+.empty-state .empty-desc{font-size:11px;line-height:1.5}
+
+/* CARTE INTERACTIVE */
+.map-section{margin-bottom:20px}
+.map-title{font-size:13px;font-weight:600;color:#e2e8f0;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.map-title .map-count{font-size:11px;color:#94a3b8;font-weight:400}
+#map-communes{height:400px;border-radius:10px;border:1px solid #334155;z-index:1}
+.map-legend{display:flex;gap:16px;margin-top:8px;font-size:11px;color:#94a3b8}
+.map-legend span{display:flex;align-items:center;gap:4px}
+.map-legend .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.map-legend .dot-green{background:#059669}
+.map-legend .dot-orange{background:#d97706}
+.map-legend .dot-red{background:#dc2626}
+.map-legend .dot-gray{background:#64748b}
+</style>
+</head>
+<body>
+<!-- ═══ AXION top bar (intégration AXION suite) ═══ -->
+<style id="axion-topbar-style">
+.axion-topbar{position:sticky;top:0;left:0;right:0;background:#0c0e14;border-bottom:1px solid #2e3450;padding:6px 14px;display:flex;align-items:center;gap:10px;z-index:99999;font-family:'DM Sans',-apple-system,sans-serif;color:#e4e6f0;height:36px;box-sizing:border-box;font-size:12px;line-height:1}
+.axion-topbar a.axion-back{color:#8a90aa;text-decoration:none;font-size:14px;padding:3px 9px;border:1px solid #2e3450;border-radius:5px;line-height:1;white-space:nowrap}
+.axion-topbar a.axion-back:hover{border-color:#f59e0b;color:#f59e0b}
+.axion-topbar .axion-emblem{width:22px;height:22px;background-image:url("data:image/png;base64,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");background-size:contain;background-repeat:no-repeat;flex-shrink:0}
+.axion-topbar .axion-title{flex:1;min-width:0;font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:.3px}
+.axion-topbar .axion-title b{color:#f59e0b;font-weight:700;letter-spacing:1.5px}
+.axion-topbar .axion-beta{background:rgba(167,139,250,.15);color:#a78bfa;border:1px solid rgba(167,139,250,.4);font-size:9px;font-weight:700;padding:2px 7px;border-radius:9px;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap}
+@media(max-width:600px){.axion-topbar{padding:5px 8px;gap:6px;height:32px}.axion-topbar .axion-title{font-size:11px}.axion-topbar a.axion-back{padding:2px 6px;font-size:12px}.axion-topbar .axion-emblem{width:18px;height:18px}}
+@media print{.axion-topbar{display:none!important}}
+</style>
+<div class="axion-topbar">
+  <a href="index.html" class="axion-back" title="Retour à l'accueil AXION">←</a>
+  <div class="axion-emblem"></div>
+  <div class="axion-title"><b>AXION</b> — Collecteur PLU</div>
+  <span class="axion-beta">Bêta</span>
+</div>
+
+<div class="header">
+  <div class="header-left">
+    <img src="assets/logos/logo_white.png" alt="Cadence Architectes" style="height:32px;width:auto">
+    <div>
+      <h1>Collecteur Base PLU</h1>
+      <div class="sub">Constitution automatique de notre base d'urbanisme</div>
+    </div>
+  </div>
+  <nav style="display:flex;gap:4px;margin-left:auto;margin-right:16px;align-items:center">
+    <a href="base_plu.html" target="_blank" style="color:rgba(255,255,255,.65);padding:6px 14px;border-radius:6px;font-weight:500;font-size:.8rem;text-decoration:none">Base PLU</a>
+    <a href="collecteur_plu.html" style="color:#fff;background:rgba(37,99,235,.35);padding:6px 14px;border-radius:6px;font-weight:500;font-size:.8rem;text-decoration:none">Collecteur</a>
+    <a href="faisabilite.html" target="_blank" style="color:rgba(255,255,255,.65);padding:6px 14px;border-radius:6px;font-weight:500;font-size:.8rem;text-decoration:none">Faisabilite</a>
+    <a href="debug_base.html" style="color:rgba(255,255,255,.45);padding:6px 14px;border-radius:6px;font-weight:500;font-size:.7rem;text-decoration:none" title="Tableau de bord">&#128202; Tableau de bord</a>
+  </nav>
+  <div class="header-db" id="header-db">
+    <div class="db-dot empty" id="db-dot"></div>
+    <div><div class="db-label">Notre base</div><div class="db-count" id="db-count">0 communes</div></div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- RECHERCHE COMMUNE -->
+  <div class="search-section">
+    <div class="search-title">Ajouter une commune a notre base</div>
+    <div class="search-help">Tapez un nom de commune &mdash; ses documents d'urbanisme (PLU, zones, reglements) seront automatiquement recuperes et enregistres.</div>
+    <div class="search-bar">
+      <span class="search-icon">&#128269;</span>
+      <input id="search-commune" type="text" placeholder="Nom de commune, code postal ou code INSEE..." autocomplete="off" spellcheck="false"
+        oninput="onSearchInput(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();searchAndCollect();}"/>
+      <span class="search-status" id="search-status"></span>
+      <div id="search-sugs"></div>
+    </div>
+  </div>
+
+  <!-- DERNIERS AJOUTS -->
+  <div id="recent-wrap" style="display:none">
+    <div class="recent-title">&#9889; Derniers ajouts</div>
+    <div class="recent-cards" id="recent-cards"></div>
+  </div>
+
+  <!-- COLLECTE DEPARTEMENT -->
+  <div class="collect-section">
+    <div class="collect-row">
+      <span class="collect-label">Collecter toutes les communes d'un departement :</span>
+      <select id="sel-dep">
+        <optgroup label="Prioritaires">
+          <option value="77">77 - Seine-et-Marne (chargement...)</option>
+          <option value="94">94 - Val-de-Marne (chargement...)</option>
+          <option value="93">93 - Seine-Saint-Denis (chargement...)</option>
+        </optgroup>
+        <optgroup label="Ile-de-France">
+          <option value="92">92 - Hauts-de-Seine (chargement...)</option>
+          <option value="95">95 - Val-d'Oise (chargement...)</option>
+          <option value="78">78 - Yvelines (chargement...)</option>
+          <option value="91">91 - Essonne (chargement...)</option>
+          <option value="75">75 - Paris (chargement...)</option>
+        </optgroup>
+        <optgroup label="Lots">
+          <option value="priority">77 + 94 + 93 (prioritaires)</option>
+          <option value="all">Toute l'Ile-de-France</option>
+        </optgroup>
+      </select>
+      <button class="btn btn-blue" id="btn-start" onclick="startCollect()">Lancer</button>
+      <button class="btn btn-red" id="btn-stop" onclick="stopCollect()" disabled>Arreter</button>
+    </div>
+    <div class="collect-help">Interroge automatiquement les serveurs de l'Etat pour chaque commune. Les communes deja dans notre base (moins de 7 jours) sont ignorees.</div>
+  </div>
+
+  <!-- COMPTEURS -->
+  <div class="stats">
+    <div class="stat"><div class="stat-label">Communes</div><div class="stat-val" id="s-communes">0</div><div class="stat-sub">dans notre base</div></div>
+    <div class="stat"><div class="stat-label">PLU communaux</div><div class="stat-val" id="s-plu">0</div><div class="stat-sub">document propre a la commune</div></div>
+    <div class="stat"><div class="stat-label">PLUi intercommunaux</div><div class="stat-val" id="s-plui">0</div><div class="stat-sub">document partage entre communes</div></div>
+    <div class="stat"><div class="stat-label">Zones d'urbanisme</div><div class="stat-val" id="s-zones">0</div><div class="stat-sub">UA, UB, AU, N...</div></div>
+    <div class="stat"><div class="stat-label">Documents PDF</div><div class="stat-val" id="s-pdfs">0</div><div class="stat-sub">Reglements, OAP...</div></div>
+  </div>
+
+  <!-- CARTE INTERACTIVE -->
+  <div class="map-section">
+    <div class="map-title">Carte des communes couvertes <span class="map-count" id="map-count"></span></div>
+    <div id="map-communes"></div>
+    <div class="map-legend">
+      <label style="cursor:pointer;display:flex;align-items:center;gap:4px"><input type="checkbox" checked onchange="toggleMapLayer('green',this.checked)" style="accent-color:#059669"> <span class="dot dot-green"></span> Regles PLU saisies</label>
+      <label style="cursor:pointer;display:flex;align-items:center;gap:4px"><input type="checkbox" checked onchange="toggleMapLayer('orange',this.checked)" style="accent-color:#d97706"> <span class="dot dot-orange"></span> Collectee (sans regles)</label>
+      <label style="cursor:pointer;display:flex;align-items:center;gap:4px"><input type="checkbox" checked onchange="toggleMapLayer('gray',this.checked)" style="accent-color:#64748b"> <span class="dot dot-gray"></span> Aucun document</label>
+    </div>
+  </div>
+
+  <!-- BARRE DE PROGRESSION -->
+  <div class="progress-wrap" id="progress-wrap" style="display:none">
+    <div class="progress-bar"><div class="progress-fill" id="pbar" style="width:0%"></div></div>
+    <div class="progress-text"><span id="ptxt">En attente...</span><span id="peta"></span></div>
+  </div>
+
+  <!-- LOG (masque par defaut) -->
+  <div class="log-toggle" onclick="toggleLog()">&#9660; <span id="log-toggle-text">Afficher le journal technique</span></div>
+  <div class="log-wrap" id="log-wrap">
+    <div class="log" id="log">Pret.
+</div>
+  </div>
+
+  <!-- FILTRES DEPARTEMENT -->
+  <div class="dep-tabs" id="dep-tabs"></div>
+
+  <!-- TABLEAU -->
+  <div class="table-section">
+    <div class="table-header">
+      <div class="table-title">Communes dans notre base</div>
+      <input type="text" id="table-filter" placeholder="Filtrer par nom..." oninput="filterTable(this.value)" style="background:#1e293b;border:1px solid #334155;border-radius:6px;padding:5px 10px;color:#e2e8f0;font-size:12px;width:200px"/>
+      <div class="table-count" id="table-count"></div>
+    </div>
+    <div class="table-body">
+      <table>
+        <thead><tr>
+          <th>Commune</th>
+          <th>Dep.</th>
+          <th>Document</th>
+          <th>Statut</th>
+          <th>Zones</th>
+          <th>PDFs</th>
+          <th>Ajoute le</th>
+          <th></th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- TOAST NOTIFICATION -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===============================================
+// BASE DE DONNEES (localStorage — automatique)
+// ===============================================
+const DB_KEY='fplu_base_plu';
+let BASE={};
+try{const r=localStorage.getItem(DB_KEY);if(r)BASE=JSON.parse(r);}catch(e){}
+
+function saveBase(){
+  try{localStorage.setItem(DB_KEY,JSON.stringify(BASE));}catch(e){log('Erreur sauvegarde: '+e.message,'err');}
+  updateStats();
+}
+
+// ===============================================
+// APIs PUBLIQUES (gratuites)
+// ===============================================
+const GEO_API='https://geo.api.gouv.fr';
+const APICARTO='https://apicarto.ign.fr/api/gpu';
+const GPU_CDN='https://data.geopf.fr/annexes/gpu/documents';
+const GPU_PORTAL='https://www.geoportail-urbanisme.gouv.fr';
+
+const DEPS_IDF=['77','94','93','92','95','78','91','75'];
+const DEP_NAMES={'75':'Paris','77':'Seine-et-Marne','78':'Yvelines','91':'Essonne','92':'Hauts-de-Seine','93':'Seine-Saint-Denis','94':'Val-de-Marne','95':"Val-d'Oise"};
+
+let running=false,stopRequested=false;
+
+async function fetchJSON(url,timeout){
+  timeout=timeout||15000;
+  const ctrl=new AbortController();
+  const t=setTimeout(()=>ctrl.abort(),timeout);
+  try{
+    const r=await fetch(url,{signal:ctrl.signal});
+    clearTimeout(t);
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    return await r.json();
+  }catch(e){clearTimeout(t);throw e;}
+}
+
+async function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+// ===============================================
+// COLLECTEUR (avec detection PLUi)
+// ===============================================
+function scoreDocs(features){
+  return features.map(f=>{
+    const p=f.properties;
+    let score=0;
+    const t=(p.du_type||'').toUpperCase();
+    if(t==='PLUI'||t==='PLUIH')score+=100;
+    else if(t==='PLU')score+=80;
+    else if(t==='POS')score+=30;
+    else if(t==='CC')score+=20;
+    if(p.gpu_status==='production')score+=20;
+    else if(p.gpu_status==='arrete')score+=10;
+    return{props:p,score};
+  }).sort((a,b)=>b.score-a.score);
+}
+
+async function collectCommune(insee,nom,dep,centre){
+  const entry={
+    insee,nom,dep,
+    scanDate:new Date().toISOString(),
+    doc:null,zones:[],pdfs:[],
+    isRnu:false,error:null
+  };
+
+  try{
+    // Etape 1 : Verifier si commune au RNU
+    const muni=await fetchJSON(APICARTO+'/municipality?insee='+insee);
+    if(muni.features&&muni.features.length){
+      entry.isRnu=muni.features[0].properties.is_rnu||false;
+    }
+
+    // Etape 2 : Chercher un PLU communal (partition DU_{INSEE})
+    let docPartition=null;
+    try{
+      const docResp=await fetchJSON(APICARTO+'/document?partition=DU_'+insee);
+      if(docResp.features&&docResp.features.length){
+        const best=scoreDocs(docResp.features)[0].props;
+        entry.doc={
+          type:best.du_type||'',
+          title:best.grid_title||best.grid_name||'',
+          id:best.gpu_doc_id||'',
+          partition:best.partition||'',
+          status:best.gpu_status||'',
+          timestamp:best.gpu_timestamp||''
+        };
+        docPartition=entry.doc.partition;
+      }
+    }catch(e){}
+
+    // Etape 2b : Si pas de PLU communal et pas au RNU → chercher PLUi via requete geographique
+    if(!entry.doc&&!entry.isRnu){
+      // Obtenir les coordonnees du centre si on ne les a pas
+      if(!centre){
+        try{
+          const cData=await fetchJSON(GEO_API+'/communes/'+insee+'?fields=centre');
+          if(cData&&cData.centre)centre=cData.centre;
+        }catch(e){}
+      }
+
+      if(centre&&centre.coordinates){
+        await sleep(300);
+        try{
+          const geom=encodeURIComponent(JSON.stringify(centre));
+          const geoDocResp=await fetchJSON(APICARTO+'/document?geom='+geom);
+          if(geoDocResp.features&&geoDocResp.features.length){
+            const best=scoreDocs(geoDocResp.features)[0].props;
+            entry.doc={
+              type:best.du_type||'',
+              title:best.grid_title||best.grid_name||'',
+              id:best.gpu_doc_id||'',
+              partition:best.partition||'',
+              status:best.gpu_status||'',
+              timestamp:best.gpu_timestamp||'',
+              isPLUi:true
+            };
+            docPartition=entry.doc.partition;
+            log('  -> PLUi detecte : '+entry.doc.title+' ('+entry.doc.type+')','info');
+          }
+        }catch(e){
+          // Requete geographique echouee, on continue
+        }
+      }
+    }
+
+    if(entry.isRnu&&!entry.doc){
+      entry.error='RNU (commune sans PLU)';
+      return entry;
+    }
+
+    // Etape 3 : Recuperer les zones d'urbanisme
+    if(docPartition){
+      await sleep(200);
+      try{
+        const zResp=await fetchJSON(APICARTO+'/zone-urba?partition='+docPartition+'&_limit=200');
+        if(zResp.features){
+          entry.zones=zResp.features.map(f=>{
+            const p=f.properties;
+            return{libelle:p.libelle||'',libelong:p.libelong||'',typezone:p.typezone||'',nomfic:p.nomfic||''};
+          });
+          const seen={};
+          entry.zones=entry.zones.filter(z=>{if(seen[z.libelle])return false;seen[z.libelle]=true;return true;});
+        }
+      }catch(e){}
+
+      // Pour les PLUi avec beaucoup de zones, tenter aussi une requete au centre de la commune
+      // pour obtenir les zones specifiques a cette commune
+      if(entry.doc&&entry.doc.isPLUi&&centre&&centre.coordinates&&entry.zones.length>50){
+        try{
+          const geom=encodeURIComponent(JSON.stringify(centre));
+          const localZones=await fetchJSON(APICARTO+'/zone-urba?geom='+geom+'&_limit=30');
+          if(localZones.features&&localZones.features.length>0){
+            // Garder les zones locales + un echantillon des zones du PLUi
+            const localLabels=new Set(localZones.features.map(f=>f.properties.libelle));
+            entry.zones=entry.zones.filter(z=>localLabels.has(z.libelle)||z.typezone==='U'||z.typezone==='AU');
+          }
+        }catch(e){}
+      }
+    }
+
+    // Etape 4 : Recuperer les PDFs
+    if(entry.doc&&entry.doc.id){
+      await sleep(200);
+      try{
+        const pmResp=await fetchJSON(GPU_PORTAL+'/api/document/'+entry.doc.id+'/details',20000);
+        const files=pmResp.files||[];
+        const partition=pmResp.partition||entry.doc.partition;
+        const hash=pmResp.id||pmResp.gpu_doc_id||entry.doc.id;
+        entry.pdfs=files.filter(f=>/\.pdf$/i.test(f)).map(f=>({
+          titre:formatTitle(f),nomfic:f,
+          href:GPU_CDN+'/'+partition+'/'+hash+'/'+f
+        }));
+      }catch(e){
+        const nomfics=[...new Set(entry.zones.map(z=>z.nomfic).filter(Boolean))];
+        entry.pdfs=nomfics.map(nf=>({
+          titre:formatTitle(nf),nomfic:nf,
+          href:GPU_CDN+'/'+entry.doc.partition+'/'+entry.doc.id+'/'+nf
+        }));
+      }
+    }
+  }catch(e){
+    entry.error=e.message;
+  }
+  return entry;
+}
+
+// Quand un PLUi est detecte, collecter automatiquement
+// toutes les communes couvertes par ce PLUi
+async function collectPluiCommunes(pluiEntry){
+  if(!pluiEntry.doc||!pluiEntry.doc.isPLUi||!pluiEntry.doc.partition)return;
+
+  const partition=pluiEntry.doc.partition;
+  const pluiCode=partition.replace('DU_','');
+
+  log('Recherche des communes couvertes par le PLUi '+pluiEntry.doc.title+'...','info');
+
+  let communesList=[];
+
+  // Methode 1 : Tenter via l'API geo (EPCI standard hors Grand Paris)
+  try{
+    const epciCommunes=await fetchJSON(GEO_API+'/epcis/'+pluiCode+'/communes?fields=nom,code,departement,centre&limit=200');
+    if(epciCommunes&&epciCommunes.length){
+      communesList=epciCommunes.map(c=>({code:c.code,nom:c.nom,dep:c.code.substring(0,2)}));
+      log('  EPCI reconnu : '+communesList.length+' communes','ok');
+    }
+  }catch(e){}
+
+  // Methode 2 : Si pas un EPCI standard, chercher via Opendatasoft (EPT Grand Paris)
+  if(!communesList.length){
+    try{
+      const odsUrl='https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/georef-france-commune/records'
+        +'?where=ept_code%3D%27'+pluiCode+'%27'
+        +'&select=com_code%2Ccom_name%2Cdep_code'
+        +'&limit=100&order_by=com_name';
+      const odsResp=await fetchJSON(odsUrl,20000);
+      if(odsResp&&odsResp.results&&odsResp.results.length){
+        communesList=odsResp.results.map(r=>({
+          code:Array.isArray(r.com_code)?r.com_code[0]:r.com_code,
+          nom:Array.isArray(r.com_name)?r.com_name[0]:r.com_name,
+          dep:Array.isArray(r.dep_code)?r.dep_code[0]:r.dep_code
+        }));
+        log('  EPT Grand Paris reconnu : '+communesList.length+' communes','ok');
+      }
+    }catch(e){
+      log('  Recherche EPT echouee : '+e.message,'warn');
+    }
+  }
+
+  // Methode 3 : Si toujours rien, chercher le PLUi code comme EPCI sur Opendatasoft
+  if(!communesList.length){
+    try{
+      const odsUrl='https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/georef-france-commune/records'
+        +'?where=epci_code%3D%27'+pluiCode+'%27'
+        +'&select=com_code%2Ccom_name%2Cdep_code'
+        +'&limit=100&order_by=com_name';
+      const odsResp=await fetchJSON(odsUrl,20000);
+      if(odsResp&&odsResp.results&&odsResp.results.length){
+        communesList=odsResp.results.map(r=>({
+          code:Array.isArray(r.com_code)?r.com_code[0]:r.com_code,
+          nom:Array.isArray(r.com_name)?r.com_name[0]:r.com_name,
+          dep:Array.isArray(r.dep_code)?r.dep_code[0]:r.dep_code
+        }));
+        log('  EPCI Opendatasoft : '+communesList.length+' communes','ok');
+      }
+    }catch(e){}
+  }
+
+  if(!communesList.length){
+    log('  Impossible de trouver la liste des communes du PLUi','warn');
+    return;
+  }
+
+  // Ajouter chaque commune a notre base avec les infos du PLUi
+  let added=0;
+  for(const c of communesList){
+    // Ne pas ecraser si deja en base avec un document
+    if(BASE[c.code]&&BASE[c.code].doc)continue;
+
+    const entry={
+      insee:c.code,nom:c.nom,dep:c.dep,
+      scanDate:new Date().toISOString(),
+      doc:{...pluiEntry.doc},
+      zones:pluiEntry.zones,
+      pdfs:pluiEntry.pdfs,
+      isRnu:false,error:null
+    };
+
+    BASE[c.code]=entry;
+    added++;
+    log('  + '+c.nom+' ('+c.code+')','ok');
+  }
+
+  if(added>0){
+    saveBase();
+    renderTable();
+    renderRecent();
+    log(added+' communes ajoutees automatiquement via le PLUi','ok');
+    showToast(added+' communes ajoutees via le PLUi "'+pluiEntry.doc.title+'"');
+  }else{
+    log('Toutes les communes du PLUi sont deja dans notre base','info');
+  }
+}
+
+function formatTitle(f){
+  return f.replace(/\.pdf$/i,'').split('_').filter(p=>!/^\d{5,}$/.test(p)&&!/^\d{8}$/.test(p)).map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ')||f;
+}
+
+// ===============================================
+// COLLECTE PAR DEPARTEMENT
+// ===============================================
+async function startCollect(){
+  if(running)return;
+  running=true;stopRequested=false;
+  document.getElementById('btn-start').disabled=true;
+  document.getElementById('btn-stop').disabled=false;
+  document.getElementById('progress-wrap').style.display='block';
+
+  const selDep=document.getElementById('sel-dep').value;
+  const deps=selDep==='all'?DEPS_IDF:selDep==='priority'?['77','94','93']:[selDep];
+
+  log('Collecte : '+deps.map(d=>d+' '+DEP_NAMES[d]).join(', '),'info');
+
+  let totalCommunes=0,processed=0,errors=0,added=0;
+  const startTime=Date.now();
+
+  for(const dep of deps){
+    if(stopRequested)break;
+    try{
+      const communes=await fetchJSON(GEO_API+'/departements/'+dep+'/communes?fields=nom,code,codesPostaux,centre&limit=600');
+      totalCommunes+=communes.length;
+      log(communes.length+' communes dans le '+dep+' ('+DEP_NAMES[dep]+')','ok');
+
+      for(let i=0;i<communes.length;i++){
+        if(stopRequested)break;
+        const c=communes[i];
+
+        if(BASE[c.code]&&BASE[c.code].scanDate){
+          const age=(Date.now()-new Date(BASE[c.code].scanDate).getTime())/(1000*60*60*24);
+          if(age<7){processed++;updateProgress(processed,totalCommunes,startTime);continue;}
+        }
+
+        const centre=c.centre||null;
+        const entry=await collectCommune(c.code,c.nom,dep,centre);
+        BASE[c.code]=entry;
+        processed++;
+        if(entry.doc)added++;
+
+        // Si PLUi detecte, collecter les communes couvertes
+        if(entry.doc&&entry.doc.isPLUi){
+          await collectPluiCommunes(entry);
+        }
+
+        if(entry.doc){
+          log(c.nom+' : '+entry.doc.type+' - '+entry.zones.length+' zones','ok');
+        }else if(entry.isRnu){
+          log(c.nom+' : RNU','warn');
+        }else{
+          log(c.nom+' : '+(entry.error||'aucun document'),'err');
+          errors++;
+        }
+
+        updateProgress(processed,totalCommunes,startTime);
+        if(processed%10===0)saveBase();
+        await sleep(300);
+      }
+    }catch(e){
+      log('Erreur '+dep+': '+e.message,'err');
+    }
+  }
+
+  saveBase();
+  renderTable();
+  renderRecent();
+  log('Termine : '+added+' communes ajoutees, '+errors+' erreurs','info');
+  showToast(added+' communes ajoutees a notre base');
+  running=false;
+  document.getElementById('btn-start').disabled=false;
+  document.getElementById('btn-stop').disabled=true;
+}
+
+function stopCollect(){
+  stopRequested=true;
+  log('Arret en cours...','warn');
+}
+
+// ===============================================
+// RECHERCHE COMMUNE (ajout automatique)
+// ===============================================
+let searchTimer=null,searchResults=[];
+let selectedCommune=null;
+
+function onSearchInput(q){
+  clearTimeout(searchTimer);
+  const sugs=document.getElementById('search-sugs');
+  q=q.trim();
+  if(q.length<2){sugs.style.display='none';searchResults=[];return;}
+  searchTimer=setTimeout(async()=>{
+    try{
+      let url;
+      if(/^\d{5}$/.test(q))url=GEO_API+'/communes?codePostal='+q+'&fields=nom,code,codesPostaux,departement,centre&limit=15';
+      else if(/^\d{2,3}$/.test(q))url=GEO_API+'/departements/'+q+'/communes?fields=nom,code,codesPostaux,departement,centre&limit=20';
+      else url=GEO_API+'/communes?nom='+encodeURIComponent(q)+'&fields=nom,code,codesPostaux,departement,centre&boost=population&limit=10';
+      const data=await fetchJSON(url);
+      searchResults=data;
+      if(!data.length){
+        sugs.innerHTML='<div style="padding:12px;color:#64748b;font-size:12px">Aucune commune trouvee</div>';
+        sugs.style.display='block';return;
+      }
+      sugs.innerHTML=data.map((c,i)=>{
+        const inBase=BASE[c.code];
+        const badge=inBase?'<span class="sug-badge">deja en base</span>':'';
+        return '<div class="sug-item" onclick="pickAndCollect('+i+')"><div><span class="sug-name">'+c.nom+'</span><span class="sug-detail">'+c.code+' &middot; '+(c.departement?c.departement.nom:'')+' &middot; '+(c.codesPostaux||[]).join(', ')+'</span></div>'+badge+'</div>';
+      }).join('');
+      sugs.style.display='block';
+    }catch(e){
+      sugs.innerHTML='<div style="padding:12px;color:#f87171;font-size:12px">Erreur: '+e.message+'</div>';
+      sugs.style.display='block';
+    }
+  },300);
+}
+
+// Cliquer sur une suggestion = collecte automatique
+async function pickAndCollect(idx){
+  if(!searchResults[idx])return;
+  const c=searchResults[idx];
+  document.getElementById('search-sugs').style.display='none';
+  document.getElementById('search-commune').value=c.nom;
+
+  const statusEl=document.getElementById('search-status');
+  statusEl.textContent='Recuperation en cours...';
+  statusEl.style.color='#60a5fa';
+
+  log('Ajout de '+c.nom+' ('+c.code+')...','info');
+
+  // Passer les coordonnees du centre pour la detection PLUi
+  const centre=c.centre||null;
+  const entry=await collectCommune(c.code,c.nom,c.code.substring(0,2),centre);
+  BASE[c.code]=entry;
+  saveBase();
+
+  if(entry.doc){
+    const typeLbl=entry.doc.isPLUi?'PLUi':'PLU';
+    log(c.nom+' : '+entry.doc.type+' "'+entry.doc.title+'" - '+entry.zones.length+' zones - '+entry.pdfs.length+' PDFs','ok');
+    statusEl.textContent='';
+    showToast(c.nom+' ajoutee ('+typeLbl+', '+entry.zones.length+' zones, '+entry.pdfs.length+' PDFs)');
+
+    // Si PLUi detecte, collecter automatiquement les communes couvertes
+    if(entry.doc.isPLUi){
+      statusEl.textContent='Ajout des communes du PLUi...';
+      statusEl.style.color='#fbbf24';
+      await collectPluiCommunes(entry);
+      statusEl.textContent='';
+    }
+  }else if(entry.isRnu){
+    log(c.nom+' : commune au RNU (pas de PLU propre)','warn');
+    statusEl.textContent='';
+    showToast(c.nom+' : commune au RNU (pas de document d\'urbanisme)');
+  }else{
+    log(c.nom+' : aucun document trouve sur les serveurs de l\'Etat','warn');
+    statusEl.textContent='';
+    showToast(c.nom+' : aucun document d\'urbanisme trouve');
+  }
+
+  renderTable();
+  renderRecent(c.code);
+  scrollToCommune(c.code);
+  document.getElementById('search-commune').value='';
+}
+
+// Touche Entree = prend le premier resultat
+async function searchAndCollect(){
+  if(searchResults.length){
+    pickAndCollect(0);
+  }
+}
+
+// ===============================================
+// INTERFACE
+// ===============================================
+function log(msg,cls){
+  const el=document.getElementById('log');
+  el.innerHTML+='<span class="'+(cls||'')+'">'+new Date().toLocaleTimeString('fr-FR')+' '+msg+'</span>\n';
+  el.scrollTop=el.scrollHeight;
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+function filterTable(q){
+  var rows=document.querySelectorAll('#tbody tr');
+  var norm=q.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  rows.forEach(function(r){
+    var name=(r.cells[0]?r.cells[0].textContent:'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    r.style.display=(!norm||name.indexOf(norm)>=0)?'':'none';
+  });
+}
+
+function scrollToCommune(insee){
+  setTimeout(function(){
+    var row=document.querySelector('tr[data-insee="'+insee+'"]');
+    if(!row)return;
+    row.scrollIntoView({behavior:'smooth',block:'center'});
+    row.style.transition='background 0.3s';
+    row.style.background='#1e40af33';
+    row.style.boxShadow='inset 3px 0 0 #3b82f6';
+    setTimeout(function(){
+      row.style.background='';row.style.boxShadow='';
+    },4000);
+  },200);
+}
+
+function toggleLog(){
+  const wrap=document.getElementById('log-wrap');
+  const isOpen=wrap.classList.toggle('open');
+  document.getElementById('log-toggle-text').textContent=isOpen?'Masquer le journal technique':'Afficher le journal technique';
+}
+
+function updateProgress(done,total,start){
+  const pct=total?Math.round(done/total*100):0;
+  document.getElementById('pbar').style.width=pct+'%';
+  document.getElementById('ptxt').textContent=done+'/'+total+' communes';
+  if(done>5){
+    const elapsed=Date.now()-start;
+    const rate=done/elapsed;
+    const remaining=Math.round((total-done)/rate/1000);
+    const min=Math.floor(remaining/60),sec=remaining%60;
+    document.getElementById('peta').textContent='~'+min+'m'+sec+'s';
+  }
+  updateStats();
+}
+
+function updateStats(){
+  const entries=Object.values(BASE);
+  const withDoc=entries.filter(e=>e.doc);
+  const totalZones=entries.reduce((s,e)=>s+(e.zones?e.zones.length:0),0);
+  const totalPdfs=entries.reduce((s,e)=>s+(e.pdfs?e.pdfs.length:0),0);
+  const pluiCount=withDoc.filter(e=>e.doc.isPLUi||e.doc.type==='PLUI'||e.doc.type==='PLUIH').length;
+  const pluCount=withDoc.length-pluiCount;
+
+  document.getElementById('s-communes').textContent=entries.length;
+  document.getElementById('s-plu').textContent=pluCount;
+  document.getElementById('s-plui').textContent=pluiCount;
+  document.getElementById('s-zones').textContent=totalZones;
+  document.getElementById('s-pdfs').textContent=totalPdfs;
+
+  // Header indicator
+  document.getElementById('db-count').textContent=entries.length+' communes';
+  document.getElementById('db-dot').className='db-dot'+(entries.length>0?'':' empty');
+
+  document.getElementById('table-count').textContent=entries.length+' communes';
+
+  renderDepTabs();
+}
+
+function renderDepTabs(){
+  const counts={};
+  Object.values(BASE).forEach(e=>{
+    if(!counts[e.dep])counts[e.dep]={total:0,ok:0};
+    counts[e.dep].total++;
+    if(e.doc)counts[e.dep].ok++;
+  });
+  let html='';
+  DEPS_IDF.forEach(d=>{
+    const c=counts[d]||{total:0,ok:0};
+    if(c.total>0)html+='<div class="dep-tab" onclick="filterDep(\''+d+'\')">'+d+' '+DEP_NAMES[d]+'<span class="cnt">'+c.ok+'/'+c.total+'</span></div>';
+  });
+  if(Object.keys(BASE).length>0)html+='<div class="dep-tab on" onclick="filterDep(\'all\')">Tous<span class="cnt">'+Object.keys(BASE).length+'</span></div>';
+  document.getElementById('dep-tabs').innerHTML=html;
+}
+
+let currentFilter='all';
+function filterDep(dep){
+  currentFilter=dep;
+  document.querySelectorAll('.dep-tab').forEach(t=>t.classList.remove('on'));
+  event.target.classList.add('on');
+  renderTable();
+}
+
+function renderRecent(priorityInsee){
+  var entries=Object.values(BASE).filter(e=>e.doc).sort((a,b)=>new Date(b.scanDate)-new Date(a.scanDate));
+  // Si une commune vient d'être ajoutée, la mettre en premier
+  if(priorityInsee){
+    var idx=entries.findIndex(e=>e.insee===priorityInsee);
+    if(idx>0){var item=entries.splice(idx,1)[0];entries.unshift(item);}
+  }
+  entries=entries.slice(0,6);
+  const wrap=document.getElementById('recent-wrap');
+  if(!entries.length){wrap.style.display='none';return;}
+  wrap.style.display='block';
+  document.getElementById('recent-cards').innerHTML=entries.map(e=>{
+    const isPLUi=e.doc&&e.doc.isPLUi;
+    const typeTag='<span class="tag t-'+(isPLUi?'plui':(e.doc.type||'').toLowerCase())+'">'+(e.doc.type||'')+(isPLUi?' (intercommunal)':'')+'</span>';
+    const statusTag='<span class="tag t-'+(e.doc.status==='production'?'prod':'arr')+'">'+e.doc.status+'</span>';
+    return '<div class="recent-card" onclick="openInGestionnaire(\''+e.insee+'\',\''+e.nom.replace(/'/g,"\\'")+'\')"><div class="rc-name">'+e.nom+'</div><div class="rc-meta">'+e.insee+' &middot; '+DEP_NAMES[e.dep]+' &middot; '+e.zones.length+' zones &middot; '+e.pdfs.length+' PDFs</div><div class="rc-tags">'+typeTag+statusTag+'</div></div>';
+  }).join('');
+}
+
+function renderTable(){
+  let entries=Object.values(BASE).sort((a,b)=>(a.nom||'').localeCompare(b.nom||''));
+  if(currentFilter!=='all')entries=entries.filter(e=>e.dep===currentFilter);
+  const tbody=document.getElementById('tbody');
+  if(!entries.length){
+    tbody.innerHTML='<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">&#128218;</div><div class="empty-title">Aucune commune dans la base</div><div class="empty-desc">Recherchez une commune ci-dessus ou lancez une collecte par departement pour commencer.</div></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML=entries.map(e=>{
+    const docType=(e.doc&&e.doc.type)||'';
+    const isPLUi=e.doc&&e.doc.isPLUi;
+    const docTag=e.doc?
+      '<span class="tag t-'+(isPLUi?'plui':docType.toLowerCase())+'">'+docType+(isPLUi?' (intercommunal)':'')+'</span> <span style="color:#94a3b8">'+e.doc.title.substring(0,35)+'</span>':
+      (e.isRnu?'<span class="tag t-rnu">RNU</span>':'<span style="color:#475569">aucun</span>');
+    const statusTag=e.doc?
+      '<span class="tag t-'+(e.doc.status==='production'?'prod':'arr')+'">'+e.doc.status+'</span>':'';
+    const actions=e.doc?'<button class="btn-action" onclick="openInGestionnaire(\''+e.insee+'\',\''+e.nom.replace(/'/g,"\\'")+'\')">Verifier &rarr;</button>':'';
+    return '<tr data-insee="'+e.insee+'"><td style="font-weight:600">'+e.nom+'</td><td>'+e.dep+'</td><td>'+docTag+'</td><td>'+statusTag+'</td><td>'+(e.zones?e.zones.length:0)+'</td><td>'+(e.pdfs?e.pdfs.length:0)+'</td><td style="font-size:10px;color:#64748b">'+(e.scanDate?new Date(e.scanDate).toLocaleDateString('fr-FR'):'')+'</td><td>'+actions+'</td></tr>';
+  }).join('');
+}
+
+// ===============================================
+// NAVIGATION
+// ===============================================
+function openInGestionnaire(insee,nom){
+  if(window.parent!==window){
+    window.parent.postMessage({type:'plu-open-gestionnaire',insee:insee,commune:nom},'*');
+  }else{
+    localStorage.setItem('fplu_goto_commune',JSON.stringify({commune:nom,insee:insee}));
+    window.location.href='base_plu.html';
+  }
+}
+
+// Fermer suggestions au clic exterieur
+document.addEventListener('click',function(e){
+  if(!e.target.closest('#search-commune')&&!e.target.closest('#search-sugs')){
+    document.getElementById('search-sugs').style.display='none';
+  }
+});
+
+// INIT
+updateStats();
+renderTable();
+renderRecent();
+
+// Charger le nombre de communes par departement
+(function loadDepCounts(){
+  var sel=document.getElementById('sel-dep');
+  var options=sel.querySelectorAll('option[value]');
+  options.forEach(function(opt){
+    var dep=opt.value;
+    if(dep==='priority'||dep==='all')return;
+    fetch(GEO_API+'/departements/'+dep+'/communes?fields=nom&limit=1000')
+      .then(function(r){return r.json();})
+      .then(function(data){
+        var n=data.length;
+        var name=DEP_NAMES[dep]||dep;
+        opt.textContent=dep+' \u2013 '+name+' ('+n+' communes)';
+      })
+      .catch(function(){});
+  });
+})();
+</script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="base_regles_plu.js"></script>
+<script>
+// ===============================================
+// CARTE INTERACTIVE DES COMMUNES
+// ===============================================
+(function(){
+  var map=L.map('map-communes',{zoomControl:true}).setView([48.55,2.9],9);
+  // Tuiles OSM France (labels en francais) avec filtre dark mode
+  L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png',{
+    maxZoom:19,attribution:'&copy; OpenStreetMap France'
+  }).addTo(map);
+  // Appliquer un filtre sombre sur les tuiles pour matcher le theme dark
+  map.getContainer().querySelector('.leaflet-tile-pane').style.filter='invert(1) hue-rotate(180deg) brightness(0.7) contrast(1.2)';
+
+  var BASE=JSON.parse(localStorage.getItem('fplu_base_plu')||'{}');
+  var REGLES=(typeof BASE_REGLES_PLU!=='undefined')?BASE_REGLES_PLU:{};
+  var communes=Object.values(BASE);
+  if(!communes.length){
+    document.getElementById('map-count').textContent='(aucune commune)';
+    return;
+  }
+
+  // Collecter les INSEE qui ont des regles
+  var inseeAvecRegles={};
+  Object.keys(REGLES).forEach(function(k){
+    var parts=k.split('_');
+    if(parts.length>=2)inseeAvecRegles[parts[0]]=true;
+  });
+
+  document.getElementById('map-count').textContent='('+communes.length+' communes)';
+
+  // Geocoder par batch via API geo.api.gouv.fr
+  var batchSize=50;
+  var batches=[];
+  for(var i=0;i<communes.length;i+=batchSize){
+    batches.push(communes.slice(i,i+batchSize));
+  }
+
+  var mapLayers={green:L.layerGroup().addTo(map),orange:L.layerGroup().addTo(map),gray:L.layerGroup().addTo(map)};
+  window.toggleMapLayer=function(key,show){if(show)map.addLayer(mapLayers[key]);else map.removeLayer(mapLayers[key]);};
+  var bounds=[];
+
+  function processBatch(batchIdx){
+    if(batchIdx>=batches.length){
+      if(bounds.length)map.fitBounds(bounds,{padding:[20,20],maxZoom:11});
+      return;
+    }
+    var batch=batches[batchIdx];
+    var promises=batch.map(function(c){
+      return fetch('https://geo.api.gouv.fr/communes/'+c.insee+'?fields=centre,nom&format=json')
+        .then(function(r){return r.ok?r.json():null;})
+        .catch(function(){return null;});
+    });
+
+    Promise.all(promises).then(function(results){
+      results.forEach(function(data,idx){
+        var c=batch[idx];
+        if(!data||!data.centre)return;
+        var lat=data.centre.coordinates[1];
+        var lng=data.centre.coordinates[0];
+        bounds.push([lat,lng]);
+
+        var hasRegles=inseeAvecRegles[c.insee];
+        var hasDoc=c.doc&&c.doc.type;
+        var color=hasRegles?'#059669':hasDoc?'#d97706':'#64748b';
+        var layerKey=hasRegles?'green':hasDoc?'orange':'gray';
+
+        var marker=L.circleMarker([lat,lng],{
+          radius:6,fillColor:color,color:'#1e293b',weight:1.5,fillOpacity:.9
+        }).addTo(mapLayers[layerKey]);
+
+        var nbZones=c.zones?c.zones.length:0;
+        var docType=c.doc?c.doc.type:'aucun';
+        var popup='<div style="font-family:DM Sans,system-ui;font-size:12px;line-height:1.5">'+
+          '<b>'+c.nom+'</b> ('+c.insee+')<br>'+
+          'Dept: '+c.dep+' | '+docType+'<br>'+
+          nbZones+' zones'+
+          (hasRegles?' | <span style="color:#059669;font-weight:600">Regles saisies</span>':'')+
+          '</div>';
+        marker.bindPopup(popup);
+      });
+      processBatch(batchIdx+1);
+    });
+  }
+
+  processBatch(0);
+})();
+</script>
+<script src="sync.js"></script>
+<script src="feedback.js"></script>
+</body>
+</html>

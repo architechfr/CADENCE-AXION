@@ -1,0 +1,3589 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Base PLU — FaisabilitéPLU | Cadence Architectes</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:     #1a3a5c;
+      --accent:      #2563eb;
+      --success:     #16a34a;
+      --warning:     #d97706;
+      --danger:      #dc2626;
+      --gray:        #6b7280;
+      --bg:          #f1f5f9;
+      --card:        #ffffff;
+      --border:      #e2e8f0;
+      --text:        #1e293b;
+      --text-muted:  #64748b;
+      --sidebar-bg:  #0f2132;
+      --sidebar-txt: #cbd5e1;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-size: 14px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.3);
+      z-index: 100;
+      flex-shrink: 0;
+    }
+    header .brand { font-weight: 700; font-size: 1rem; display: flex; align-items: center; gap: 10px; }
+    header .brand-logo { height: 28px; width: auto; flex-shrink: 0; }
+    header .sub   { font-size: .7rem; opacity: .6; margin-top: 1px; }
+    header .spacer { flex: 1; }
+    header a { color: rgba(255,255,255,.65); text-decoration: none; font-size: .8rem; }
+    header a:hover { color: white; }
+
+    /* ── LAYOUT ── */
+    #app {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      height: calc(100vh - 49px);
+    }
+
+    /* ── SIDEBAR ── */
+    #sidebar {
+      width: 260px;
+      min-width: 260px;
+      background: var(--sidebar-bg);
+      color: var(--sidebar-txt);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .sb-head {
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .sb-head h2 {
+      font-size: .68rem;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: rgba(255,255,255,.4);
+      margin-bottom: 8px;
+    }
+    #commune-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px;
+    }
+    #commune-list::-webkit-scrollbar { width: 4px; }
+    #commune-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 2px; }
+    .c-item {
+      padding: 9px 11px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background .12s;
+      margin-bottom: 2px;
+    }
+    .c-item:hover  { background: rgba(255,255,255,.07); }
+    .c-item.active { background: rgba(37,99,235,.4); }
+    .c-item .cname { font-size: .84rem; font-weight: 500; color: white; }
+    .c-item .cmeta {
+      font-size: .68rem;
+      color: rgba(255,255,255,.38);
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .sb-footer {
+      padding: 10px;
+      border-top: 1px solid rgba(255,255,255,.08);
+      display: flex;
+      gap: 5px;
+    }
+    .sb-btn {
+      flex: 1;
+      padding: 6px 4px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: transparent;
+      color: rgba(255,255,255,.6);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: .68rem;
+      transition: all .12s;
+    }
+    .sb-btn:hover { background: rgba(255,255,255,.1); color: white; }
+
+    /* ── MAIN ── */
+    #main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--card);
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.07);
+      overflow: hidden;
+    }
+    .card-head {
+      padding: 12px 18px;
+      background: var(--primary);
+      color: white;
+      font-size: .88rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-head .flex1 { flex: 1; }
+    .card-body { padding: 18px; }
+
+    /* ── SEARCH ── */
+    .search-row { display: flex; gap: 8px; margin-bottom: 10px; }
+    .search-row input {
+      flex: 1;
+      padding: 9px 13px;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      font-size: .92rem;
+      outline: none;
+      transition: border-color .15s;
+    }
+    .search-row input:focus { border-color: var(--accent); }
+
+    /* ── BUTTONS ── */
+    .btn {
+      padding: 9px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: .88rem;
+      font-weight: 500;
+      transition: all .13s;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .btn-primary  { background: var(--accent); color: white; }
+    .btn-primary:hover  { background: #1d4ed8; }
+    .btn-secondary { background: var(--border); color: var(--text); }
+    .btn-secondary:hover { background: #cbd5e1; }
+    .btn-danger  { background: #fee2e2; color: var(--danger); }
+    .btn-danger:hover  { background: #fecaca; }
+    .btn-success { background: #dcfce7; color: var(--success); }
+    .btn-success:hover { background: #bbf7d0; }
+    .btn-sm { padding: 5px 10px; font-size: .75rem; }
+    .btn-xs { padding: 3px 8px; font-size: .7rem; }
+
+    /* ── SUGGESTIONS ── */
+    #suggestions {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      display: none;
+      margin-top: 4px;
+    }
+    .sug-item {
+      padding: 9px 13px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+      font-size: .88rem;
+      transition: background .1s;
+    }
+    .sug-item:last-child { border-bottom: none; }
+    .sug-item:hover, .sug-item.hi { background: #eff6ff; }
+    .sug-item .sug-meta { color: var(--text-muted); font-size: .72rem; margin-left: 8px; }
+
+    /* ── SHORTCUTS ── */
+    .shortcuts { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+    .sc-btn {
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: .73rem;
+      transition: all .12s;
+      color: var(--text-muted);
+    }
+    .sc-btn:hover { border-color: var(--accent); color: var(--accent); background: #eff6ff; }
+
+    /* ── PROGRESS ── */
+    .prog-step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 5px 0;
+      font-size: .84rem;
+      color: var(--text-muted);
+    }
+    .prog-step.s-active { color: var(--accent); font-weight: 500; }
+    .prog-step.s-done   { color: var(--success); }
+    .prog-step.s-error  { color: var(--danger); }
+    .prog-icon {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .7rem;
+      flex-shrink: 0;
+    }
+    .pi-pending  { border: 2px solid var(--border); }
+    .pi-spin     { border: 2px solid var(--accent); border-top-color: transparent; animation: spin .7s linear infinite; }
+    .pi-done     { background: var(--success); color: white; }
+    .pi-error    { background: var(--danger);  color: white; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── COMMUNE RESULT ── */
+    .com-header { display: flex; align-items: flex-start; gap: 16px; }
+    .com-icon {
+      width: 50px; height: 50px;
+      background: linear-gradient(135deg, var(--primary), #2563eb);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 1.3rem;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(37,99,235,.2);
+    }
+    .com-info h2 { font-size: 1.3rem; font-weight: 700; margin-bottom: 6px; color: var(--text); }
+    .com-tags { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .tag {
+      display: inline-flex; align-items: center;
+      padding: 3px 10px;
+      border-radius: 5px;
+      font-size: .72rem;
+      font-weight: 600;
+    }
+    .tag-insee  { background: var(--bg); border: 1px solid var(--border); color: var(--text-muted); }
+    .tag-plui   { background: #1d4ed8; color: white; }
+    .tag-plu    { background: #2563eb; color: white; }
+    .tag-pos    { background: #d97706; color: white; }
+    .tag-cc     { background: #92400e; color: white; }
+    .tag-rnu    { background: #6b7280; color: white; }
+
+    /* ── CONFIDENCE ── */
+    .conf-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: .8rem;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+    .conf-certain  { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+    .conf-probable { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+    .conf-partiel  { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+    .conf-rnu      { background: #f1f5f9; color: #475569; border: 1px solid var(--border); }
+    .conf-score {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      font-size: .72rem;
+      font-weight: 700;
+      margin-left: 4px;
+    }
+    .conf-certain .conf-score  { background: #15803d; color: white; }
+    .conf-probable .conf-score { background: #b45309; color: white; }
+    .conf-partiel .conf-score  { background: #b91c1c; color: white; }
+    .conf-rnu .conf-score      { background: #475569; color: white; }
+
+    /* ── INFO GRID ── */
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .info-cell label {
+      display: block;
+      font-size: .68rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+    .info-cell .val { font-size: .88rem; }
+
+    /* ── DOC TABLE ── */
+    .doc-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+    .doc-table th {
+      text-align: left;
+      padding: 7px 11px;
+      background: var(--bg);
+      color: var(--text-muted);
+      font-size: .68rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .doc-table td { padding: 9px 11px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .doc-table tr:last-child td { border-bottom: none; }
+    .doc-table tr.best td  { background: #eff6ff; }
+    .doc-table tr:hover td { background: #f8fafc; }
+    .doc-table tr.best:hover td { background: #dbeafe; }
+
+    /* ── STATUT ── */
+    .s-approuve { background: #dcfce7; color: #15803d; }
+    .s-arrete   { background: #fef3c7; color: #b45309; }
+    .s-other    { background: #f1f5f9; color: #475569; }
+
+    /* ── DOCUMENT DETAIL (Geoportail-inspired) ── */
+    .doc-detail { background: #f8fafc; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; }
+    .doc-detail-header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 18px;
+      background: white;
+      border-bottom: 1px solid var(--border);
+    }
+    .doc-type-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: .88rem;
+      font-weight: 700;
+      letter-spacing: .02em;
+    }
+    .doc-type-badge.plui { background: #1d4ed8; color: white; }
+    .doc-type-badge.plu  { background: #2563eb; color: white; }
+    .doc-type-badge.pos  { background: #d97706; color: white; }
+    .doc-type-badge.cc   { background: #92400e; color: white; }
+    .doc-type-badge.rnu  { background: #6b7280; color: white; }
+    .doc-detail-title { flex: 1; }
+    .doc-detail-title h3 { font-size: .95rem; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+    .doc-detail-title .doc-subtitle { font-size: .75rem; color: var(--text-muted); }
+    .doc-detail-body { padding: 0; }
+    .doc-section {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .doc-section:last-child { border-bottom: none; }
+    .doc-section-title {
+      font-size: .68rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text-muted);
+      font-weight: 700;
+      margin-bottom: 10px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .doc-section-title .sec-icon { font-size: .8rem; }
+    .doc-props {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 16px;
+    }
+    .doc-prop { display: flex; flex-direction: column; gap: 2px; }
+    .doc-prop-label { font-size: .68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
+    .doc-prop-value { font-size: .84rem; color: var(--text); font-weight: 500; }
+    .doc-gpu-link {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 14px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      text-decoration: none;
+      color: var(--accent);
+      font-size: .84rem;
+      font-weight: 500;
+      transition: all .15s;
+    }
+    .doc-gpu-link:hover { border-color: var(--accent); background: #eff6ff; box-shadow: 0 1px 4px rgba(37,99,235,.12); }
+    .doc-gpu-link .link-icon { font-size: 1.1rem; flex-shrink: 0; }
+    .doc-gpu-link .link-detail { font-size: .7rem; color: var(--text-muted); font-weight: 400; margin-top: 1px; }
+
+    /* ── PIECES ECRITES (improved) ── */
+    .pm-category {
+      margin-bottom: 16px;
+    }
+    .pm-category:last-child { margin-bottom: 0; }
+    .pm-cat-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 0;
+      margin-bottom: 6px;
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+    }
+    .pm-cat-header .cat-icon { font-size: .9rem; }
+    .pm-cat-count {
+      background: var(--bg);
+      padding: 1px 7px;
+      border-radius: 10px;
+      font-size: .65rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .pm-list { display: flex; flex-direction: column; gap: 5px; }
+    .pm-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      transition: all .15s;
+      background: white;
+    }
+    .pm-item:hover { border-color: var(--accent); background: #eff6ff; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
+    .pm-item.pm-highlight { border-color: var(--accent); border-left: 3px solid var(--accent); }
+    .pm-icon {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .9rem;
+      flex-shrink: 0;
+    }
+    .pm-icon.pdf { background: #fef2f2; color: #dc2626; }
+    .pm-icon.other { background: #f0f9ff; color: #2563eb; }
+    .pm-info { flex: 1; min-width: 0; }
+    .pm-title {
+      font-size: .84rem; font-weight: 600; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .pm-url {
+      font-size: .68rem; color: var(--text-muted);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-top: 1px;
+    }
+    .pm-actions { display: flex; gap: 4px; flex-shrink: 0; }
+    .pm-btn {
+      padding: 5px 10px;
+      border: 1px solid var(--border);
+      background: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: .72rem;
+      font-weight: 500;
+      transition: all .12s;
+      white-space: nowrap;
+      text-decoration: none;
+      color: var(--text);
+      display: inline-flex; align-items: center; gap: 3px;
+    }
+    .pm-btn:hover  { border-color: var(--accent); color: var(--accent); background: #eff6ff; }
+    .pm-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .pm-btn.pm-btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
+    .pm-btn.pm-btn-primary:hover { background: #1d4ed8; }
+
+    /* ── PDF VIEWER ── */
+    .pdf-toolbar {
+      display: flex; align-items: center; gap: 7px;
+      padding: 9px 13px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .pdf-toolbar .pdf-name {
+      font-size: .78rem; color: var(--text-muted);
+      flex: 1; min-width: 0;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    #pdf-container {
+      position: relative;
+      height: 620px;
+      background: #374151;
+    }
+    #pdf-frame { width: 100%; height: 100%; border: none; display: block; }
+    #pdf-fallback {
+      display: none;
+      position: absolute; inset: 0;
+      background: rgba(30,41,59,.93);
+      color: white;
+      align-items: center; justify-content: center;
+      flex-direction: column;
+      gap: 14px; text-align: center;
+      padding: 30px;
+    }
+    #pdf-fallback.show { display: flex; }
+    #pdf-fallback .fb-icon { font-size: 2.5rem; }
+    #pdf-fallback p { font-size: .88rem; max-width: 400px; opacity: .85; }
+
+    /* ── ALERTS ── */
+    .alert {
+      padding: 11px 14px;
+      border-radius: 6px;
+      font-size: .84rem;
+      display: flex; align-items: flex-start; gap: 8px;
+      line-height: 1.4;
+    }
+    .alert-info    { background: #eff6ff; border-left: 3px solid var(--accent); color: #1e40af; }
+    .alert-warning { background: #fffbeb; border-left: 3px solid #f59e0b; color: #92400e; }
+    .alert-error   { background: #fef2f2; border-left: 3px solid var(--danger); color: #991b1b; }
+    .alert-success { background: #f0fdf4; border-left: 3px solid var(--success); color: #166534; }
+
+    /* ── SECTION TITLE ── */
+    .sec-title {
+      font-size: .7rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-bottom: 10px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── EMPTY ── */
+    .empty {
+      text-align: center;
+      padding: 30px 15px;
+      color: var(--text-muted);
+    }
+    .empty .ei { font-size: 2rem; margin-bottom: 8px; }
+    .empty p   { font-size: .84rem; }
+
+    /* ── STATUS BAR ── */
+    #status-bar {
+      position: fixed; bottom: 0;
+      left: 260px; right: 0;
+      background: rgba(15,33,50,.95);
+      color: rgba(255,255,255,.7);
+      padding: 3px 14px;
+      font-size: .68rem;
+      z-index: 50;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    /* ── IMPORT RULES PANEL ── */
+    .import-panel {
+      margin-top: 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .import-panel-head {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 14px;
+      background: var(--bg);
+      cursor: pointer;
+      user-select: none;
+      font-size: .82rem;
+      font-weight: 600;
+    }
+    .import-panel-head:hover { background: #e2e8f0; }
+    .import-badge {
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: .68rem;
+      font-weight: 700;
+    }
+    .import-badge.has-rules { background: #dcfce7; color: #15803d; }
+    .import-badge.no-rules  { background: #fef3c7; color: #92400e; }
+    .import-panel-body {
+      padding: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .import-field { margin-bottom: 6px; }
+    .import-field label {
+      display: block; font-size: .7rem; font-weight: 600;
+      color: var(--text-muted); margin-bottom: 2px;
+      text-transform: uppercase; letter-spacing: .04em;
+    }
+    .import-field input, .import-field textarea {
+      width: 100%; padding: 7px 10px;
+      border: 1px solid var(--border); border-radius: 5px;
+      font-size: .82rem; outline: none;
+      transition: border-color .15s;
+    }
+    .import-field input:focus, .import-field textarea:focus { border-color: var(--accent); }
+    .import-preview {
+      padding: 10px; border-radius: 6px;
+      background: var(--bg); margin-top: 8px;
+      font-size: .8rem;
+    }
+    .import-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 6px; margin-bottom: 8px;
+    }
+    .toast-msg {
+      position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+      background: #1e293b; color: white;
+      padding: 8px 20px; border-radius: 8px;
+      font-size: .82rem; font-weight: 500;
+      z-index: 9999; opacity: 0;
+      transition: opacity .3s;
+      pointer-events: none;
+    }
+    .toast-msg.show { opacity: 1; }
+
+    /* ── MISC ── */
+    .mono { font-family: 'Courier New', monospace; font-size: .75rem; }
+    .link { color: var(--accent); text-decoration: none; font-size: .78rem; }
+    .link:hover { text-decoration: underline; }
+    .mt8  { margin-top: 8px; }
+    .mt16 { margin-top: 16px; }
+    .gap6 { gap: 6px; }
+    .flex { display: flex; align-items: center; }
+
+    @media (max-width: 768px) {
+      #sidebar { display: none; }
+      #status-bar { left: 0; }
+    }
+  </style>
+</head>
+<body>
+<!-- ═══ AXION top bar (intégration AXION suite) ═══ -->
+<style id="axion-topbar-style">
+.axion-topbar{position:sticky;top:0;left:0;right:0;background:#0c0e14;border-bottom:1px solid #2e3450;padding:6px 14px;display:flex;align-items:center;gap:10px;z-index:99999;font-family:'DM Sans',-apple-system,sans-serif;color:#e4e6f0;height:36px;box-sizing:border-box;font-size:12px;line-height:1}
+.axion-topbar a.axion-back{color:#8a90aa;text-decoration:none;font-size:14px;padding:3px 9px;border:1px solid #2e3450;border-radius:5px;line-height:1;white-space:nowrap}
+.axion-topbar a.axion-back:hover{border-color:#f59e0b;color:#f59e0b}
+.axion-topbar .axion-emblem{width:22px;height:22px;background-image:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAAI4klEQVR42u1cW2xcVxXd+9zxOPLEMaEkoQpqKUXQVihBIFWkUhOMWtomrULayPwgkIqEGn54qPzwY1WiCqqEFCHxFhIoCOiEFCgkMVFIQimUEoNImggyNLjKw8Z4PH7M4z7OPmfxkXPDrYnjsT3jeMZ3S1caXc3Mnbtmr332WuecS3QTAgAPDw+vozQWFmNjY92+7+8DwCka84h8Pu8REUVRtEVE/lMoFDrjjEzRqY+6GSIirfXXRORk8lwaddY+IiIROR9F0Z4UkfmBp4iIgiB4j9a6Uq1WNxIRVavVnUNDQ6tShOqgLwCOoujLIvJXd65TRM75vv/uJMitFEv5gy0zQym1y1r7SwBcq9U2eZ53j1Lq3pvwe1oHQADMzLZSqbydiO4Kw/AgM6Ojo+MhIoJS6uH4rSlXb0zfz4hIIQbVGPMKAIjIZQBdaUszO4CeG32Paa33xYMJgBCAAQDf93uT700p/Gb6mrGxsW4i+iCAAwBYKfUgEWWJKCIiymQyj7iPpBl4vewLguAJR9WMy8ZDuBqho/Hp/v5+lVJ4FvUhInljzA+JiMrl8gZjzKQD0ACwxhgJguCuVmtn1BLQV86ePZsloq3W2gMAOJvNblNK9RCRcb/BKKU8pdRHXQaqNPUS9PV9v1dExkZGRnJOC/8AgAWgXRaKo/FAqzbUzTYPvi0iLxIRjYyM5ETkUoK+cGDCGDM1PT39trSdebN5wCIyFIbhJwGw7/u9M8BDMguDIHi8lVwa1UTwFDMjDMNNRLQ2DMMjzIxEu2JnfoSI4HnejpS7CfWhtX5WRH4X10QROTNLBhpXB99IjdbEQCAir0VR9DkAXKlUNjuqWlw/LABUq9UPtYoqUU2kr/V9/51EdFu1Wn2RmZHNZh8kIs+1L9cLQ0SUzWZbRpU0qwYqANzR0bGLiP61du3aISIipdSOOYBhIiJmfjgJ6Eo2D17WWj9DRFQqlW4zxlSTVJ2NwgDCiYmJO1qhJ1RNAI+Z2UxNTd0C4H1hGL4AgHO5XK9Sqstl1Y0yUIgo29XV9UArqJJm/DgPAK9atWoHM4/lcrkzzJxsT+oyTT3P287MoGVusjYDQDjA+gAMMDMmJibeQkQfjrGZCztXB+8vlUo9zGxWTDsT3+iVK1e6RGQsiqKtADgIgu2z9H6zhXGq5JHl3s6oZnzf+vXre4koLBQKf3LZuN1R0db5Pdapku2t0s402jzYr7X+kTvXISL/cFkVuUZ6riMCIMaYv584cSKzoijs5NqlIAh2EhHVarWtWERUKpXNy7mdyTQQPI+ZTRRF9yqlOsvl8nGnKm4noldc+1JvLYvbmfdms9nHmPm0Kw92JdB3n4j8uhHFPwzDJ0XktVZoqBs2AovI+dj7i0F1r+dzeAC4XC6v11qP+75/Z1uDGN/Y9PT03SJSmpqaumWxdlRCDv5RRL6U/EPasY1RTn3sJqJzPT09464mLkZFMAC21v6ciHa577JtnYEiMigin29EtsTf6fv+nSIyXi6X1y82q5dl9Pf3KyKiYrG4UURKtVrt9kbVq6QpG4bhp5crjRc9+gJgEdkjIn9rZLEHkGFm0lp/NTHluaxkXSNuFK4+7QbwqwZbUBYARVF0gIg+MDo6urqtzIX4RkqlUo/Wulgulzc1ut2IWxut9VAQBLuWu7mw0FajT0T+2Ywin2jQv6e1/mnyXDtQOAarD8BR97rR2RG3Qs8z8/2Dg4MdzCwt79DEmVYoFDpFZLhWq21tBr1mXGckiqJtbUHjxMKhB7TWl11mNFVni8hBrfW3lhuNF1ubvqu1/nEzbyr+s8Iw/LiIvB6rlHYxDy5orXc2k1bJ0V5Exmd6hAswK64dNwW8eNNgrVbborUeB5BrtsxKjPjHjTFfWS405oVmBDOjUqncCmBdd3f3mSUqGUZrvUcp9VQmk9nkFNAzbp/JfAzbeHT3giD4bC6X+3M+n/f6+vrMTaXzUlyjWq1u1FpPxtvDoih6aqHTBcaYoBHW22JVglrC68Xmwl+iKHoaAFer1XcYY8p1TlbFR3h1JZ0cXGztXtTNMzOYeSk9ungbxC+UUruYGblc7jKAwQR9vToORUSeMWYgXkV7M82EpQzLzBCRnxHRPW7vHVlrD81QLXPVvgwRRdbaY21t1N6oFhpjzodh+GS8cNMYY26w6uv/1mKLyKuNqH2tOEnjuawb8DxvNzPj1KlT5wCcc1S0dWQgARhoknZvDQlZq9Xu01oXi8XiGqeInnMZpufIQAsAURS1zDLiZo3+nohc1lp/zPmFvXUsYEoXss/Q4ftjHT46OrraGHNpDhA1AKu1/n6jlEyrTlTDDSTPM/M2ANkNGzZUrLW/pRuvAmMiYmPM4Yb1VS0KoCUiGh8fP05EnUEQ3OfmkA/HIM0m3ay106VS6SV3bmUuYp9hLhzSWn+D6Oo2WhGZmmUhe1M2NLbyWhN2z13IM/NDALi7u3uUiF5OZulM2ltrDzvjd8UDaNxevEMA1kVRtDkGaBZV4llrjbX2KABqlPpoWQCZGQC8NWvWFJn5rFLqCSIi3/ePWWu1k2tIZCMDOLd3795C/BgWWumReJzKF0XkdNzXiciryboXN9da6+ca1b60A4WvmQvGmBeI6I7Jycl3ucw8MoPGsQ12ZB6mw4rJwuSu0C+4R0ptsdbGI7Fx5ulw/MiBdDf8dWhsjHlWRH5PdG0O+fXkY1USM4deitp1MrBSqbxfRKamp6fXOZn3TZeBPgCEYfiJRte/djMXWETeEJFPud1Rj/1v6sPUisXixkY20O1qLnwn3iEwOTm51hjzb6c+Tqbg1SHrfN/v1VqPj46OrnaA/gSAjaLo6WbRt13+EUtEdOHChT8ws/T09HzEmQtHiYjDMPzNLPIujZk0FpEDWuv9RERBENyttT6bDhzzoHEQBLu11sP5fN4D0FmpVB5Ne786R2IiomKxuEZEJuNHp6SxgCx0T8r8ujuXbeY1221Yj5esHWTmbe6cNPOC7VZcDTMjCIKTAG6NQU25Oc8YHBzsuHjx4luXYvD4LyMq9egZ86ADAAAAAElFTkSuQmCC");background-size:contain;background-repeat:no-repeat;flex-shrink:0}
+.axion-topbar .axion-title{flex:1;min-width:0;font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:.3px}
+.axion-topbar .axion-title b{color:#f59e0b;font-weight:700;letter-spacing:1.5px}
+.axion-topbar .axion-beta{background:rgba(167,139,250,.15);color:#a78bfa;border:1px solid rgba(167,139,250,.4);font-size:9px;font-weight:700;padding:2px 7px;border-radius:9px;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap}
+@media(max-width:600px){.axion-topbar{padding:5px 8px;gap:6px;height:32px}.axion-topbar .axion-title{font-size:11px}.axion-topbar a.axion-back{padding:2px 6px;font-size:12px}.axion-topbar .axion-emblem{width:18px;height:18px}}
+@media print{.axion-topbar{display:none!important}}
+</style>
+<div class="axion-topbar">
+  <a href="index.html" class="axion-back" title="Retour à l'accueil AXION">←</a>
+  <div class="axion-emblem"></div>
+  <div class="axion-title"><b>AXION</b> — Base PLU</div>
+  <span class="axion-beta">Bêta</span>
+</div>
+
+<header>
+  <div>
+    <div class="brand"><img src="assets/logos/logo_white.png" alt="Cadence Architectes" class="brand-logo"> Base PLU</div>
+    <div class="sub">Cadence Architectes · cadence-architectes.fr</div>
+  </div>
+  <div class="spacer"></div>
+  <nav style="display:flex;gap:4px">
+    <a href="base_plu.html" style="color:#fff;background:rgba(37,99,235,.35);padding:6px 14px;border-radius:6px;font-weight:500;font-size:.8rem">Base PLU</a>
+    <a href="collecteur_plu.html" target="_blank" style="color:rgba(255,255,255,.65);padding:6px 14px;border-radius:6px;font-weight:500;font-size:.8rem">Collecteur</a>
+    <a href="faisabilite.html" target="_blank" style="color:rgba(255,255,255,.65);padding:6px 14px;border-radius:6px;font-weight:500;font-size:.8rem">Faisabilite</a>
+    <a href="debug_base.html" style="color:rgba(255,255,255,.45);padding:6px 14px;border-radius:6px;font-weight:500;font-size:.7rem" title="Tableau de bord">&#128202; Tableau de bord</a>
+  </nav>
+</header>
+
+<div id="app">
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside id="sidebar">
+    <div class="sb-head">
+      <h2>📍 Communes analysées</h2>
+      <button class="btn btn-primary btn-sm" style="width:100%" onclick="clearActive()">+ Nouvelle analyse</button>
+    </div>
+    <div id="commune-list">
+      <div class="empty" style="padding:16px 10px">
+        <div class="ei">🏘️</div>
+        <p style="color:rgba(255,255,255,.25);font-size:.72rem">Aucune commune analysée</p>
+      </div>
+    </div>
+    <div class="sb-footer">
+      <button class="sb-btn" onclick="exportJSON()">📤 Export</button>
+      <button class="sb-btn" onclick="triggerImport()">📥 Import</button>
+      <button class="sb-btn" onclick="clearAll()">🗑️ Vider</button>
+    </div>
+    <input type="file" id="import-input" accept=".json" style="display:none">
+  </aside>
+
+  <!-- ══ MAIN ══ -->
+  <main id="main">
+
+    <!-- Recherche -->
+    <div class="card">
+      <div class="card-head">🔍 Rechercher une commune</div>
+      <div class="card-body">
+        <div class="search-row">
+          <input type="text" id="search-input"
+            placeholder="Nom de commune ou code INSEE (ex: Le Raincy, 93048, Ferrières-en-Brie…)"
+            autocomplete="off">
+          <button class="btn btn-primary" onclick="launchSearch()">Analyser</button>
+        </div>
+        <div id="suggestions"></div>
+        <div class="mt8">
+          <span style="font-size:.72rem;color:var(--text-muted);font-weight:500">Raccourcis rapides :</span>
+          <div class="shortcuts" id="shortcuts"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progression -->
+    <div class="card" id="card-progress" style="display:none">
+      <div class="card-head">⏳ Analyse en cours…</div>
+      <div class="card-body" id="progress-body"></div>
+    </div>
+
+    <!-- Résultat commune -->
+    <div class="card" id="card-commune" style="display:none">
+      <div class="card-head">
+        📋 Fiche commune
+        <div class="flex1"></div>
+        <button class="btn btn-danger btn-sm" onclick="deleteCurrentCommune()">🗑️ Supprimer</button>
+      </div>
+      <div class="card-body">
+        <div class="com-header">
+          <div class="com-icon">&#127963;&#65039;</div>
+          <div class="com-info" style="flex:1">
+            <h2 id="r-nom"></h2>
+            <div class="com-tags">
+              <span class="tag tag-insee" id="r-insee"></span>
+              <span class="tag tag-insee" id="r-dep"></span>
+            </div>
+            <div id="r-conf"></div>
+          </div>
+        </div>
+        <div id="r-alert" class="mt16"></div>
+        <div class="mt16">
+          <div id="r-doc-selected"></div>
+        </div>
+        <!-- Import regles PLU -->
+        <div class="import-panel mt16" id="import-panel">
+          <div class="import-panel-head" onclick="toggleImportPanel()">
+            <span>&#128221; Regles PLU</span>
+            <span class="import-badge no-rules" id="import-status-badge">Aucune regle</span>
+            <button id="gest-btn-scans" onclick="event.stopPropagation();ouvrirScanViewer(0)" style="display:none;align-items:center;gap:4px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);color:var(--accent);font-size:.7rem;padding:3px 8px;border-radius:4px;cursor:pointer;font-weight:600">&#128247; Scans PDF</button>
+            <div style="flex:1"></div>
+            <span id="import-chevron" style="font-size:.8rem;color:var(--text-muted)">&#9660;</span>
+          </div>
+          <div class="import-panel-body" id="import-panel-body" style="display:none">
+            <!-- Zone detectee + apercu regles -->
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span style="font-size:.75rem;color:var(--text-muted)">Zone :</span>
+              <strong id="import-zone-label" style="font-size:.88rem">—</strong>
+              <span id="import-source-label" style="font-size:.7rem;color:var(--text-muted);margin-left:auto"></span>
+            </div>
+            <div id="gest-rules-preview" style="margin-bottom:10px"></div>
+
+            <!-- Analyser le PLU avec Claude Code -->
+            <div style="border-top:1px solid var(--border);padding-top:10px;margin-bottom:10px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                <span style="font-size:.82rem;font-weight:600;color:var(--text)">&#128218; Alimenter la base de regles</span>
+              </div>
+              <div id="gest-analyse-section">
+                <!-- Etape 1 : Telecharger le reglement -->
+                <div style="margin-bottom:10px;padding:10px;background:var(--bg);border-radius:6px;border:1px solid var(--border)">
+                  <div style="display:flex;align-items:center;gap:10px">
+                    <div style="flex:1">
+                      <div style="font-size:.78rem;font-weight:600;color:var(--text);margin-bottom:2px">1. Telecharger le reglement PDF</div>
+                      <div style="font-size:.7rem;color:var(--text-muted)" id="gest-reglement-info">Fichier PDF du reglement PLU</div>
+                    </div>
+                    <a id="gest-dl-reglement" href="#" target="_blank" class="btn btn-secondary btn-sm" style="white-space:nowrap" download onclick="onPdfDownloadClick()">&#11123; Telecharger</a>
+                    <button id="gest-btn-save-pdf" class="btn btn-primary btn-sm" style="white-space:nowrap;display:none" onclick="downloadPdfToFolder()" title="Sauvegarder dans le dossier pdf_reglements via le serveur local">&#128229; Sauver en local</button>
+                  </div>
+                  <div id="gest-pdf-status" style="display:none;margin-top:8px;padding:6px 10px;border-radius:6px;font-size:.7rem"></div>
+                  <div id="gest-pdf-save-status" style="display:none;margin-top:4px;padding:6px 10px;border-radius:6px;font-size:.7rem"></div>
+                  <!-- Bouton copier commande Claude après sauvegarde -->
+                  <div id="gest-copy-cmd-wrap" style="display:none;margin-top:8px">
+                    <button id="gest-btn-copy-cmd" class="btn btn-sm" onclick="copierCommandeClaude()" style="width:100%;padding:8px;font-size:.72rem;font-weight:600;background:#f0f4ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+                      &#128203; Copier la commande pour Claude Code
+                    </button>
+                    <div id="gest-cmd-preview" style="display:none;margin-top:4px;padding:6px 8px;background:#1e1b4b;color:#a5b4fc;border-radius:6px;font-family:monospace;font-size:.65rem;white-space:pre-wrap;word-break:break-all;max-height:60px;overflow:hidden"></div>
+                  </div>
+                </div>
+                <!-- Etape 2 : Saisir une adresse pour detecter la zone -->
+                <div style="margin-bottom:10px;padding:10px;background:var(--bg);border-radius:6px;border:1px solid var(--border)">
+                  <div style="font-size:.78rem;font-weight:600;color:var(--text);margin-bottom:6px">2. Saisir une adresse dans la commune</div>
+                  <div style="font-size:.7rem;color:var(--text-muted);margin-bottom:8px">La zone PLU applicable sera detectee automatiquement pour cibler l'analyse.</div>
+                  <div style="position:relative">
+                    <input id="gest-addr-input" type="text" placeholder="Ex: 12 rue de la Paix…" autocomplete="off" spellcheck="false"
+                      style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:.78rem;color:var(--text);background:white;outline:none"
+                      oninput="gest_addrAutocomplete()" onkeydown="if(event.key==='Enter')gest_detecterZone()"/>
+                    <div id="gest-addr-sugs" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1px solid var(--border);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.12);z-index:200;max-height:160px;overflow-y:auto"></div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+                    <button class="btn btn-secondary btn-sm" onclick="gest_detecterZone()" id="gest-btn-detect" style="flex:1">&#128205; Detecter la zone PLU</button>
+                    <div id="gest-zone-badge" style="display:none;padding:4px 10px;border-radius:20px;font-size:.72rem;font-weight:600;background:rgba(37,99,235,.1);color:var(--accent);border:1px solid rgba(37,99,235,.3)"></div>
+                  </div>
+                  <div id="gest-detect-status" style="display:none;margin-top:6px;font-size:.7rem;color:var(--text-muted)"></div>
+                  <div id="gest-zone-override" style="display:none;margin-top:8px;padding:10px;background:rgba(217,119,6,.06);border:1px solid rgba(217,119,6,.3);border-radius:6px">
+                    <div style="font-size:.72rem;font-weight:600;color:#92400e;margin-bottom:6px">&#9888; Zone non detectee automatiquement — selectionnez manuellement</div>
+                    <div style="display:flex;gap:6px;align-items:center">
+                      <select id="gest-zone-select" style="flex:1;padding:6px 8px;border:1px solid var(--border);border-radius:4px;font-size:.78rem;background:white;color:var(--text)" onchange="if(this.value)gest_appliquerZoneManuelle(this.value)">
+                        <option value="">-- Choisir une zone --</option>
+                      </select>
+                      <span style="font-size:.65rem;color:var(--text-muted)">ou</span>
+                      <input id="gest-zone-manual" type="text" placeholder="Ex: UC" style="width:60px;padding:6px 8px;border:1px solid var(--border);border-radius:4px;font-size:.78rem;text-transform:uppercase" onkeydown="if(event.key==='Enter')gest_appliquerZoneManuelle(this.value.trim().toUpperCase())"/>
+                      <button class="btn btn-secondary btn-sm" onclick="gest_appliquerZoneManuelle(document.getElementById('gest-zone-manual').value.trim().toUpperCase())" style="font-size:.7rem">Appliquer</button>
+                    </div>
+                    <div id="gest-zone-override-info" style="font-size:.65rem;color:var(--text-muted);margin-top:4px"></div>
+                  </div>
+                  <div id="gest-addr-history" style="display:none;margin-top:8px"></div>
+                </div>
+                <!-- Etape 3 : Lancer l'analyse -->
+                <div id="gest-cmd-section" style="margin-bottom:10px;padding:10px;background:var(--bg);border-radius:6px;border:1px solid var(--border)">
+                  <div style="font-size:.78rem;font-weight:600;color:var(--text);margin-bottom:4px">3. Lancer l'analyse du PDF</div>
+                  <div id="gest-cmd-desc" style="font-size:.7rem;color:var(--text-muted);margin-bottom:8px">Cliquez pour lancer l'analyse — Claude Code lit le PDF, extrait les regles de la zone et remplit la base automatiquement.</div>
+                  <!-- Bouton principal : declenche via serveur local -->
+                  <button id="gest-btn-analyser" class="btn btn-primary" onclick="lancerAnalysePLU()" style="width:100%;padding:10px;font-size:.85rem;font-weight:600;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:8px">
+                    <span>&#9889;</span> <span id="gest-btn-analyser-txt">Analyser cette zone</span>
+                  </button>
+                  <!-- Statut retour -->
+                  <div id="gest-analyse-status" style="display:none;margin-top:8px;padding:8px 10px;border-radius:6px;font-size:.72rem"></div>
+                </div>
+                <div id="gest-cmd-toast" style="display:none;padding:6px 10px;background:rgba(22,163,74,.1);border:1px solid rgba(22,163,74,.3);border-radius:6px;font-size:.72rem;color:var(--success);text-align:center;margin-bottom:8px">&#10003; Commande copiee — collez-la dans Claude Code !</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bouton faisabilite : uniquement contextuel (section analyse zone) -->
+      </div>
+    </div>
+
+    <!-- Tous les documents GPU -->
+    <div class="card" id="card-alldocs" style="display:none">
+      <div class="card-head">📚 Documents GPU trouvés <span id="docs-count" style="font-weight:400;font-size:.8rem;opacity:.7"></span></div>
+      <div style="overflow-x:auto">
+        <table class="doc-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Type</th>
+              <th>Nom / Périmètre</th>
+              <th>Statut</th>
+              <th>Approbation</th>
+              <th>Pièces écrites</th>
+            </tr>
+          </thead>
+          <tbody id="docs-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Pièces écrites -->
+    <div class="card" id="card-pm" style="display:none">
+      <div class="card-head">&#128196; Pieces ecrites du document <span id="pm-doc-name" style="font-weight:400;font-size:.8rem;opacity:.7"></span></div>
+      <div class="card-body" style="padding:14px 18px">
+        <div id="pm-list"></div>
+      </div>
+    </div>
+
+    <!-- Visionneuse PDF -->
+    <div class="card" id="card-pdf" style="display:none">
+      <div class="card-head">
+        📖 Visionneuse PDF
+        <div class="flex1"></div>
+        <button class="btn btn-secondary btn-sm" onclick="closePdf()">✕ Fermer</button>
+      </div>
+      <div class="pdf-toolbar">
+        <span class="pdf-name" id="pdf-title">—</span>
+        <button class="btn btn-secondary btn-xs" id="btn-m-fetch" onclick="tryMethod('fetch')">📥 Direct</button>
+        <button class="btn btn-secondary btn-xs" id="btn-m-gdocs" onclick="tryMethod('gdocs')">☁️ Google Docs</button>
+        <button class="btn btn-secondary btn-xs" id="btn-m-pdfjs" onclick="tryMethod('pdfjs')">🔵 PDF.js</button>
+        <a id="btn-newtab" href="#" target="_blank" class="btn btn-success btn-xs">↗️ Nouvel onglet</a>
+      </div>
+      <div id="pdf-container">
+        <iframe id="pdf-frame" title="Visionneuse PDF"></iframe>
+        <div id="pdf-fallback">
+          <div class="fb-icon">⚠️</div>
+          <p id="pdf-fallback-msg">Le PDF ne peut pas être affiché directement dans l'application.</p>
+          <a id="pdf-fallback-link" href="#" target="_blank" class="btn btn-primary">↗️ Ouvrir dans un nouvel onglet</a>
+          <div class="flex gap6" style="margin-top:6px">
+            <button class="btn btn-secondary btn-sm" onclick="tryMethod('gdocs')">☁️ Essayer Google Docs</button>
+            <button class="btn btn-secondary btn-sm" onclick="tryMethod('pdfjs')">🔵 Essayer PDF.js</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height:28px"></div>
+  </main>
+</div>
+
+<!-- ══ VIEWER SCANS PDF ══ -->
+<div id="scan-viewer-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9000;flex-direction:column;align-items:center;justify-content:center">
+  <div style="width:100%;max-width:1100px;display:flex;align-items:center;justify-content:space-between;padding:12px 20px;flex-shrink:0">
+    <div>
+      <div id="scan-viewer-title" style="color:#fff;font-size:1rem;font-weight:700"></div>
+      <div id="scan-viewer-sub" style="color:rgba(255,255,255,.5);font-size:.75rem"></div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span id="scan-viewer-count" style="font-size:12px;color:#9ca3af"></span>
+      <button onclick="closeScanViewer()" style="background:rgba(255,255,255,.1);border:none;border-radius:6px;width:32px;height:32px;color:#fff;font-size:18px;cursor:pointer">✕</button>
+    </div>
+  </div>
+  <div style="position:relative;display:flex;align-items:center;gap:10px;flex:1;min-height:0;width:100%;max-width:1100px;padding:0 16px 16px">
+    <button onclick="scanNav(-1)" style="flex-shrink:0;background:rgba(255,255,255,.12);border:none;border-radius:50%;width:44px;height:44px;font-size:22px;color:#fff;cursor:pointer">&#8592;</button>
+    <div style="flex:1;display:flex;justify-content:center;align-items:center;min-height:0;overflow:auto">
+      <img id="scan-viewer-img" src="" alt="" style="max-width:100%;max-height:75vh;border-radius:6px;box-shadow:0 8px 40px rgba(0,0,0,.6);object-fit:contain">
+    </div>
+    <button onclick="scanNav(1)" style="flex-shrink:0;background:rgba(255,255,255,.12);border:none;border-radius:50%;width:44px;height:44px;font-size:22px;color:#fff;cursor:pointer">&#8594;</button>
+  </div>
+  <div id="scan-viewer-thumbs" style="width:100%;max-width:1100px;padding:0 16px 14px;display:flex;gap:6px;overflow-x:auto;flex-shrink:0"></div>
+</div>
+
+<div id="status-bar">Pret · Base PLU · FaisabilitePLU | Cadence Architectes</div>
+
+<script src="base_regles_plu.js"></script>
+<script>
+'use strict';
+
+// ══════════════════════════════════════════════════════════
+// CONSTANTES & CONFIG API
+// ══════════════════════════════════════════════════════════
+
+var GEO_API     = 'https://geo.api.gouv.fr';
+var APICARTO    = 'https://apicarto.ign.fr/api/gpu';
+var GPU_CDN     = 'https://data.geopf.fr/annexes/gpu/documents';
+var GPU_PORTAL  = 'https://www.geoportail-urbanisme.gouv.fr';
+
+var SHORTCUTS = [
+  { nom: 'Le Raincy',            insee: '93062' },
+  { nom: 'Ferrieres-en-Brie',    insee: '77181' },
+  { nom: 'Sevran',               insee: '93071' },
+  { nom: 'Bobigny',              insee: '93008' },
+  { nom: 'Pantin',               insee: '93055' },
+  { nom: 'Vincennes',            insee: '94080' },
+  { nom: 'Versailles',           insee: '78646' },
+  { nom: 'Roissy-en-Brie',      insee: '77390' },
+  { nom: 'Bussy-Saint-Georges',  insee: '77058' }
+];
+
+// ══════════════════════════════════════════════════════════
+// ETAT GLOBAL
+// ══════════════════════════════════════════════════════════
+
+var communes    = {};
+var current     = null;
+var currentPdf  = null;
+var pmRegistry  = [];
+var docRegistry = [];
+var searchTimer = null;
+var sugIdx      = -1;
+
+// ══════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════
+
+function init() {
+  loadDB();
+  renderSidebar();
+  renderShortcuts();
+  bindEvents();
+  setStatus('Pret');
+}
+
+function bindEvents() {
+  var inp = document.getElementById('search-input');
+  inp.addEventListener('input',   onSearchInput);
+  inp.addEventListener('keydown', onSearchKey);
+
+  document.getElementById('suggestions').addEventListener('click', function(e) {
+    var item = e.target.closest('.sug-item');
+    if (item) analyzeCommune(item.dataset.insee, item.dataset.nom);
+  });
+
+  document.getElementById('shortcuts').addEventListener('click', function(e) {
+    var btn = e.target.closest('.sc-btn');
+    if (btn) analyzeCommune(btn.dataset.insee, btn.dataset.nom);
+  });
+
+  document.getElementById('commune-list').addEventListener('click', function(e) {
+    var item = e.target.closest('.c-item');
+    if (item) loadCommune(item.dataset.insee);
+  });
+
+  document.getElementById('import-input').addEventListener('change', importJSON);
+
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('#search-input') && !e.target.closest('#suggestions')) {
+      hideSuggestions();
+    }
+  });
+
+  // Reception commune depuis le collecteur (via app.html)
+  var gotoData = localStorage.getItem('fplu_goto_commune');
+  if (gotoData) {
+    localStorage.removeItem('fplu_goto_commune');
+    try {
+      var goto = JSON.parse(gotoData);
+      if (goto.insee) {
+        setTimeout(function() { analyzeCommune(goto.insee, goto.commune); }, 500);
+      }
+    } catch(e) {}
+  }
+
+  // ── Restauration d'etat depuis sessionStorage ──────────────────
+  if (!gotoData) {
+    try {
+      var savedState = JSON.parse(sessionStorage.getItem('fplu_base_plu_state') || 'null');
+      if (savedState && savedState.insee) {
+        setTimeout(function() {
+          analyzeCommune(savedState.insee, savedState.commune);
+          // Restaurer l'adresse et la zone apres chargement de la commune
+          setTimeout(function() {
+            if (savedState.address) {
+              var addrInput = document.getElementById('gest-addr-input');
+              if (addrInput) addrInput.value = savedState.address;
+              GEST_ANALYSE.lat = savedState.lat || 0;
+              GEST_ANALYSE.lng = savedState.lng || 0;
+              if (savedState.zone && savedState.lat) {
+                gest_detecterZone();
+              }
+            }
+          }, 1200);
+        }, 500);
+      }
+    } catch(e) {}
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// RACCOURCIS
+// ══════════════════════════════════════════════════════════
+
+function renderShortcuts() {
+  var el = document.getElementById('shortcuts');
+  el.innerHTML = SHORTCUTS.map(function(s) {
+    return '<button class="sc-btn" data-insee="' + s.insee + '" data-nom="' + escHtml(s.nom) + '">' + escHtml(s.nom) + '</button>';
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════
+// RECHERCHE + SUGGESTIONS
+// ══════════════════════════════════════════════════════════
+
+function onSearchInput() {
+  clearTimeout(searchTimer);
+  var q = document.getElementById('search-input').value.trim();
+  if (q.length < 2) { hideSuggestions(); return; }
+  searchTimer = setTimeout(function() { fetchSuggestions(q); }, 280);
+}
+
+function onSearchKey(e) {
+  var sug   = document.getElementById('suggestions');
+  var items = sug.querySelectorAll('.sug-item');
+  if (e.key === 'ArrowDown') {
+    sugIdx = Math.min(sugIdx + 1, items.length - 1);
+    highlightSug(items); e.preventDefault();
+  } else if (e.key === 'ArrowUp') {
+    sugIdx = Math.max(sugIdx - 1, 0);
+    highlightSug(items); e.preventDefault();
+  } else if (e.key === 'Enter') {
+    if (sugIdx >= 0 && items[sugIdx]) { items[sugIdx].click(); }
+    else { launchSearch(); }
+  } else if (e.key === 'Escape') {
+    hideSuggestions();
+  }
+}
+
+function highlightSug(items) {
+  items.forEach(function(el, i) {
+    el.classList.toggle('hi', i === sugIdx);
+  });
+}
+
+function fetchSuggestions(q) {
+  var url;
+  if (/^\d{5}$/.test(q)) {
+    url = GEO_API + '/communes/' + q + '?fields=nom,code,codesPostaux';
+  } else {
+    url = GEO_API + '/communes?nom=' + encodeURIComponent(q) + '&fields=nom,code,codesPostaux&boost=population&limit=7';
+  }
+  fetch(url).then(function(r) { return r.json(); }).then(function(data) {
+    var list = Array.isArray(data) ? data : [data];
+    showSuggestions(list);
+  }).catch(function() { hideSuggestions(); });
+}
+
+function showSuggestions(list) {
+  var el = document.getElementById('suggestions');
+  if (!list || list.length === 0) { hideSuggestions(); return; }
+  sugIdx = -1;
+  el.style.display = 'block';
+  el.innerHTML = list.map(function(c) {
+    var cp = (c.codesPostaux || [])[0] || '';
+    return '<div class="sug-item" data-insee="' + (c.code || '') + '" data-nom="' + escAttr(c.nom || '') + '">'
+      + escHtml(c.nom || c.code || '')
+      + '<span class="sug-meta">' + (c.code || '') + (cp ? ' · ' + cp : '') + '</span>'
+      + '</div>';
+  }).join('');
+}
+
+function hideSuggestions() {
+  document.getElementById('suggestions').style.display = 'none';
+  document.getElementById('suggestions').innerHTML = '';
+  sugIdx = -1;
+}
+
+function launchSearch() {
+  var q = document.getElementById('search-input').value.trim();
+  if (!q) return;
+  hideSuggestions();
+  if (/^\d{5}$/.test(q)) {
+    analyzeCommune(q, null);
+  } else {
+    fetchSuggestions(q);
+    setTimeout(function() {
+      var first = document.querySelector('#suggestions .sug-item');
+      if (first) first.click();
+    }, 500);
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// ANALYSE PRINCIPALE — PIPELINE CORRIGE
+// ══════════════════════════════════════════════════════════
+
+function analyzeCommune(insee, nomHint) {
+  if (!insee) return;
+  hideSuggestions();
+  document.getElementById('search-input').value = nomHint || insee;
+  hideResult();
+  showProgressCard(true);
+  setStatus('Analyse ' + (nomHint || insee) + '...');
+  resetSteps();
+
+  var communeData, isRnu, gpuDoc, zoneUrba, pdfFiles, confidence;
+
+  // ETAPE 1 : Geolocalisation commune
+  stepActive('commune');
+  fetchCommune(insee)
+    .then(function(c) {
+      communeData = c;
+      if (!communeData || !communeData.centre) throw new Error('Commune introuvable : ' + insee);
+      stepDone('commune', communeData.nom + ' (' + communeData.code + ')');
+
+      // ETAPE 2 : Check RNU + Document GPU en parallele
+      stepActive('gpu');
+      var lon = communeData.centre.coordinates[0];
+      var lat = communeData.centre.coordinates[1];
+      var geomPoint = JSON.stringify({ type: 'Point', coordinates: [lon, lat] });
+
+      // Chercher via PARTITION (DU_INSEE) ET via GEOM en parallele
+      // La partition est plus fiable que le point geographique
+      return Promise.all([
+        fetchMunicipality(communeData.code),
+        fetchGpuDocumentByPartition(communeData.code),
+        fetchGpuDocumentByGeom(geomPoint),
+        fetchZoneUrbaByPartition(communeData.code),
+        fetchZoneUrba(geomPoint)
+      ]);
+    })
+    .then(function(results) {
+      var muniResult       = results[0];
+      var docByPartition   = results[1];
+      var docByGeom        = results[2];
+      var zoneByPartition  = results[3];
+      var zoneByGeom       = results[4];
+
+      isRnu = muniResult.is_rnu;
+
+      // Priorite : partition (DU_INSEE) > geom Point
+      // La partition est TOUJOURS fiable, le centre geom peut tomber hors perimetre
+      gpuDoc = docByPartition || docByGeom;
+
+      // Pour zone-urba, utiliser celle qui correspond au meme document
+      if (zoneByPartition) {
+        zoneUrba = zoneByPartition;
+      } else if (zoneByGeom && gpuDoc && zoneByGeom.partition === gpuDoc.partition) {
+        zoneUrba = zoneByGeom;
+      } else if (zoneByGeom) {
+        zoneUrba = zoneByGeom;
+      } else {
+        zoneUrba = null;
+      }
+
+      // Fusionner _allDocs des deux sources (dedoublonner par gpu_doc_id)
+      if (gpuDoc) {
+        var allDocsMap = {};
+        var mergedSources = [docByPartition, docByGeom].filter(Boolean);
+        mergedSources.forEach(function(src) {
+          (src._allDocs || []).forEach(function(d) {
+            if (d.gpu_doc_id) allDocsMap[d.gpu_doc_id] = d;
+          });
+        });
+        gpuDoc._allDocs = Object.keys(allDocsMap).map(function(k) { return allDocsMap[k]; });
+      }
+
+      if (gpuDoc) {
+        stepDone('gpu', gpuDoc.du_type + ' : ' + gpuDoc.grid_title);
+      } else if (isRnu) {
+        stepDone('gpu', 'RNU (aucun document)');
+      } else {
+        stepDone('gpu', 'Pas de document GPU mais pas RNU non plus');
+      }
+
+      // ETAPE 3 : Selection document + construction PDF
+      stepActive('docs');
+
+      pdfFiles = [];
+      if (zoneUrba && zoneUrba.nomfic && gpuDoc) {
+        // URL PDF = data.geopf.fr/annexes/gpu/documents/{PARTITION}/{GPU_DOC_ID}/{NOMFIC}
+        var baseName = zoneUrba.nomfic;
+        var pdfUrl = GPU_CDN + '/' + gpuDoc.partition + '/' + gpuDoc.gpu_doc_id + '/' + baseName;
+        pdfFiles.push({
+          titre: 'Reglement — ' + baseName,
+          nomfic: baseName,
+          href: pdfUrl
+        });
+      }
+
+      var docTypeLabel = gpuDoc ? gpuDoc.du_type : (isRnu ? 'RNU' : 'INCONNU');
+      stepDone('docs', docTypeLabel + ' retenu');
+
+      // ETAPE 4 : Recuperation pieces ecrites (via by-id)
+      stepActive('pm');
+      if (gpuDoc && gpuDoc.gpu_doc_id) {
+        return fetchWritingMaterials(gpuDoc.gpu_doc_id);
+      }
+      return Promise.resolve([]);
+    })
+    .then(function(writingMaterials) {
+      // Fusionner les pieces ecrites trouvees
+      var allPM = (writingMaterials || []).slice();
+
+      // Recrire les URLs qui pointent vers geoportail-urbanisme (SSL broken)
+      // vers data.geopf.fr CDN qui fonctionne
+      if (gpuDoc && gpuDoc.partition && gpuDoc.gpu_doc_id) {
+        allPM = allPM.map(function(pm) {
+          var href = pm.href || '';
+          var nomfic = pm.nomfic || '';
+          // Si URL pointe vers geoportail-urbanisme, reconstruire via CDN
+          if (href.indexOf('geoportail-urbanisme') >= 0 && nomfic) {
+            pm.href = GPU_CDN + '/' + gpuDoc.partition + '/' + gpuDoc.gpu_doc_id + '/' + nomfic;
+          }
+          return pm;
+        });
+      }
+
+      // Si on a un nomfic de zone-urba et qu il n est pas deja dans la liste, l ajouter
+      if (pdfFiles.length > 0) {
+        var already = allPM.some(function(pm) {
+          var h = pm.href || pm.url || pm.link || '';
+          return h.indexOf(pdfFiles[0].nomfic) >= 0;
+        });
+        if (!already) {
+          allPM.unshift({
+            titre: pdfFiles[0].titre,
+            href: pdfFiles[0].href
+          });
+        }
+      }
+
+      stepDone('pm', allPM.length + ' piece(s) disponible(s)');
+
+      // Calcul confiance
+      var statusProd = gpuDoc && gpuDoc.gpu_status === 'production';
+      confidence = calcConfidence(gpuDoc, isRnu, allPM, statusProd);
+
+      // Assembler les donnees
+      var data = {
+        insee:           communeData.code,
+        nom:             communeData.nom,
+        departement:     (communeData.departement || {}).nom || '',
+        analysedAt:      new Date().toISOString(),
+        lon:             communeData.centre.coordinates[0],
+        lat:             communeData.centre.coordinates[1],
+        isRnu:           isRnu,
+        gpuDoc:          gpuDoc,
+        zoneUrba:        zoneUrba,
+        writingMaterials: allPM,
+        confidence:      confidence
+      };
+
+      communes[communeData.code] = data;
+      saveDB();
+      current = data;
+
+      showProgressCard(false);
+      renderResult(data);
+      renderSidebar();
+      setStatus(communeData.nom + ' - ' + confidence.label + ' (' + confidence.score + '%)');
+      savePageState();
+    })
+    .catch(function(err) {
+      var failStep = document.querySelector('.prog-step.s-active');
+      var failId = failStep ? failStep.id.replace('ps-', '') : 'commune';
+      stepError(failId, err.message || String(err));
+      setStatus('Erreur : ' + (err.message || err));
+      console.error('Erreur analyse:', err);
+    });
+}
+
+// ══════════════════════════════════════════════════════════
+// API : COMMUNE (geo.api.gouv.fr)
+// ══════════════════════════════════════════════════════════
+
+function fetchCommune(insee) {
+  return fetch(GEO_API + '/communes/' + insee + '?fields=nom,code,centre,codesPostaux,departement')
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status + ' pour INSEE ' + insee);
+      return r.json();
+    });
+}
+
+// ══════════════════════════════════════════════════════════
+// API : MUNICIPALITY (is_rnu check)
+// ══════════════════════════════════════════════════════════
+
+function fetchMunicipality(insee) {
+  return fetch(APICARTO + '/municipality?insee=' + insee)
+    .then(function(r) {
+      if (!r.ok) throw new Error('Municipality API HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(data) {
+      var features = (data && data.features) ? data.features : [];
+      if (features.length === 0) return { is_rnu: true };
+      var props = features[0].properties || {};
+      return {
+        is_rnu:       props.is_rnu === true,
+        name:         props.name || '',
+        is_deleted:   props.is_deleted || false
+      };
+    })
+    .catch(function(err) {
+      console.warn('Municipality check failed:', err);
+      return { is_rnu: false };
+    });
+}
+
+// ══════════════════════════════════════════════════════════
+// API : DOCUMENT GPU (apicarto avec geom Point)
+// Proprietes reelles : du_type, grid_title, grid_name,
+//   gpu_doc_id, gpu_status, partition, name
+// ══════════════════════════════════════════════════════════
+
+function fetchGpuDocumentByPartition(insee) {
+  var url = APICARTO + '/document?partition=DU_' + insee;
+  return fetch(url)
+    .then(function(r) {
+      if (!r.ok) return null;
+      return r.json();
+    })
+    .then(function(data) {
+      var features = (data && data.features) ? data.features : [];
+      if (features.length === 0) return null;
+      var sorted = features.slice().sort(function(a, b) {
+        return gpuDocScore(b) - gpuDocScore(a);
+      });
+      var best = sorted[0];
+      var p = best.properties || {};
+      return {
+        du_type:       p.du_type || 'INCONNU',
+        grid_title:    p.grid_title || '',
+        grid_name:     p.grid_name || '',
+        name:          p.name || '',
+        gpu_doc_id:    p.gpu_doc_id || p.id || '',
+        gpu_status:    p.gpu_status || '',
+        partition:     p.partition || '',
+        gpu_timestamp: p.gpu_timestamp || '',
+        _source:       'partition',
+        _allDocs:      sorted.map(function(f) { return f.properties || {}; })
+      };
+    })
+    .catch(function(err) {
+      console.warn('GPU document by partition failed:', err);
+      return null;
+    });
+}
+
+function fetchGpuDocumentByGeom(geomJson) {
+  var url = APICARTO + '/document?geom=' + encodeURIComponent(geomJson);
+  return fetch(url)
+    .then(function(r) {
+      if (!r.ok) return null;
+      return r.json();
+    })
+    .then(function(data) {
+      var features = (data && data.features) ? data.features : [];
+      if (features.length === 0) return null;
+
+      var sorted = features.slice().sort(function(a, b) {
+        return gpuDocScore(b) - gpuDocScore(a);
+      });
+
+      var best = sorted[0];
+      var p = best.properties || {};
+      return {
+        du_type:       p.du_type || 'INCONNU',
+        grid_title:    p.grid_title || '',
+        grid_name:     p.grid_name || '',
+        name:          p.name || '',
+        gpu_doc_id:    p.gpu_doc_id || p.id || '',
+        gpu_status:    p.gpu_status || '',
+        partition:     p.partition || '',
+        gpu_timestamp: p.gpu_timestamp || '',
+        _source:       'geom',
+        _allDocs:      sorted.map(function(f) { return f.properties || {}; })
+      };
+    })
+    .catch(function(err) {
+      console.warn('GPU document by geom failed:', err);
+      return null;
+    });
+}
+
+function gpuDocScore(feature) {
+  var p = (feature && feature.properties) ? feature.properties : {};
+  var type = (p.du_type || '').toUpperCase();
+  var status = (p.gpu_status || '').toLowerCase();
+
+  var score = 0;
+  if (type === 'PLUI' || type === 'PLUIH') score += 100;
+  else if (type === 'PLU')                 score += 80;
+  else if (type === 'POS')                 score += 30;
+  else if (type === 'CC')                  score += 20;
+
+  if (status === 'production')             score += 20;
+  else if (status === 'arrete')            score += 10;
+
+  return score;
+}
+
+// ══════════════════════════════════════════════════════════
+// API : ZONE-URBA (pour nomfic du reglement PDF)
+// Proprietes reelles : libelle, libelong, typezone,
+//   nomfic, partition, idurba, datvalid
+// ══════════════════════════════════════════════════════════
+
+function fetchZoneUrbaByPartition(insee) {
+  // Chercher une zone U (urbaine) dans la partition communale
+  var url = APICARTO + '/zone-urba?partition=DU_' + insee + '&_limit=5';
+  return fetch(url)
+    .then(function(r) {
+      if (!r.ok) return null;
+      return r.json();
+    })
+    .then(function(data) {
+      var features = (data && data.features) ? data.features : [];
+      if (features.length === 0) return null;
+      // Prendre la premiere zone U si possible, sinon la premiere zone
+      var uZone = features.find(function(f) {
+        return (f.properties || {}).typezone === 'U';
+      });
+      var best = uZone || features[0];
+      var p = best.properties || {};
+      return {
+        libelle:   p.libelle || '',
+        libelong:  p.libelong || '',
+        typezone:  p.typezone || '',
+        nomfic:    cleanNomfic(p.nomfic || ''),
+        urlfic:    p.urlfic || '',
+        partition: p.partition || '',
+        idurba:    p.idurba || '',
+        datvalid:  p.datvalid || '',
+        insee:     p.insee || '',
+        _source:   'partition'
+      };
+    })
+    .catch(function(err) {
+      console.warn('Zone-urba by partition failed:', err);
+      return null;
+    });
+}
+
+// Nettoyer le nomfic : enlever #page=, espaces, etc.
+function cleanNomfic(nomfic) {
+  if (!nomfic) return '';
+  // Enlever tout apres # (ex: "reglement.pdf#page=12" -> "reglement.pdf")
+  var clean = nomfic.split('#')[0].trim();
+  return clean;
+}
+
+function fetchZoneUrba(geomJson) {
+  var url = APICARTO + '/zone-urba?geom=' + encodeURIComponent(geomJson);
+  return fetch(url)
+    .then(function(r) {
+      if (!r.ok) throw new Error('Zone-urba API HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(data) {
+      var features = (data && data.features) ? data.features : [];
+      if (features.length === 0) return null;
+
+      var p = features[0].properties || {};
+      return {
+        libelle:   p.libelle || '',
+        libelong:  p.libelong || '',
+        typezone:  p.typezone || '',
+        nomfic:    cleanNomfic(p.nomfic || ''),
+        urlfic:    p.urlfic || '',
+        partition:  p.partition || '',
+        idurba:    p.idurba || '',
+        datvalid:  p.datvalid || '',
+        insee:     p.insee || '',
+        _source:   'geom'
+      };
+    })
+    .catch(function(err) {
+      console.warn('Zone-urba fetch failed:', err);
+      return null;
+    });
+}
+
+// ══════════════════════════════════════════════════════════
+// API : PIECES ECRITES (geoportail-urbanisme by-id)
+// ══════════════════════════════════════════════════════════
+
+function fetchWritingMaterials(docId) {
+  // Methode 1 : API /api/document/{id}/details (peut avoir SSL issues)
+  // Methode 2 : Lister les fichiers connus via zone-urba nomfic
+  // On essaie les deux, en gerant le cas SSL fail de geoportail-urbanisme
+
+  var portalUrl = GPU_PORTAL + '/api/document/' + docId + '/details';
+  var byIdUrl   = GPU_PORTAL + '/document/by-id/' + docId;
+
+  // Essayer portal API d abord, puis by-id en fallback
+  return tryFetchPM(portalUrl)
+    .then(function(result) {
+      if (result && result.length > 0) return result;
+      // Fallback: by-id
+      return tryFetchPM(byIdUrl);
+    })
+    .then(function(result) {
+      return result || [];
+    })
+    .catch(function() {
+      return [];
+    });
+}
+
+function tryFetchPM(url) {
+  return fetch(url)
+    .then(function(r) {
+      if (!r.ok) return [];
+      return r.json();
+    })
+    .then(function(data) {
+      if (!data) return [];
+
+      // Cas 1 : details endpoint retourne { files: [...], writingMaterials: {...} }
+      var files = data.files || [];
+      var wm    = data.writingMaterials || data.piecesEcrites || data.pieces_ecrites;
+
+      // Si writingMaterials est un objet { filename: url, ... }
+      if (wm && !Array.isArray(wm) && typeof wm === 'object') {
+        var flat = [];
+        Object.keys(wm).forEach(function(key) {
+          var val = wm[key];
+          if (typeof val === 'string') {
+            flat.push({ titre: formatPMTitle(key), href: val, nomfic: key });
+          } else if (Array.isArray(val)) {
+            val.forEach(function(v) {
+              if (typeof v === 'string') {
+                flat.push({ titre: formatPMTitle(key), href: v, nomfic: key });
+              } else if (v && (v.href || v.url)) {
+                flat.push({ titre: formatPMTitle(v.titre || v.nom || key), href: v.href || v.url, nomfic: key });
+              }
+            });
+          }
+        });
+        return flat;
+      }
+
+      // Cas 2 : array direct
+      if (Array.isArray(wm) && wm.length > 0) return wm;
+
+      // Cas 3 : files array — construire les URLs CDN
+      if (files.length > 0) {
+        var partition = data.partition || '';
+        var hash      = data.id || data.gpu_doc_id || '';
+        return files.filter(function(f) {
+          return /\.pdf$/i.test(f);
+        }).map(function(f) {
+          var pdfUrl = (partition && hash) ? (GPU_CDN + '/' + partition + '/' + hash + '/' + f) : '';
+          return { titre: formatPMTitle(f), href: pdfUrl, nomfic: f };
+        }).filter(function(item) { return item.href; });
+      }
+
+      return [];
+    })
+    .catch(function() {
+      return [];
+    });
+}
+
+function formatPMTitle(filename) {
+  if (!filename) return 'Document';
+  // Transformer 77058_reglement_20240523.pdf -> Reglement
+  var name = filename.replace(/\.pdf$/i, '');
+  var parts = name.split('_');
+  // Enlever le code INSEE et la date
+  var meaningful = parts.filter(function(p) {
+    return !/^\d{5,}$/.test(p) && !/^\d{8}$/.test(p);
+  });
+  if (meaningful.length === 0) return filename;
+  return meaningful.map(function(w) {
+    return w.charAt(0).toUpperCase() + w.slice(1);
+  }).join(' ');
+}
+
+// ══════════════════════════════════════════════════════════
+// CALCUL CONFIANCE
+// ══════════════════════════════════════════════════════════
+
+function calcConfidence(gpuDoc, isRnu, writingMaterials, isProduction) {
+  if (!gpuDoc && isRnu) {
+    return { level: 'rnu', label: 'RNU applicable', cssClass: 'conf-rnu', score: 10, icon: 'i' };
+  }
+  if (!gpuDoc) {
+    return { level: 'rnu', label: 'Aucun document GPU', cssClass: 'conf-rnu', score: 15, icon: 'i' };
+  }
+
+  var type   = (gpuDoc.du_type || '').toUpperCase();
+  var isPLUi = type === 'PLUI' || type === 'PLUIH';
+  var isPLU  = type === 'PLU';
+  var hasPM  = writingMaterials && writingMaterials.length > 0;
+
+  if ((isPLUi || isPLU) && isProduction && hasPM) {
+    return { level: 'certain',  label: 'Certain - ' + gpuDoc.du_type + ' en production avec reglement', cssClass: 'conf-certain',  score: 95, icon: 'V' };
+  }
+  if ((isPLUi || isPLU) && isProduction) {
+    return { level: 'probable', label: 'Probable - ' + gpuDoc.du_type + ' en production, pieces absentes', cssClass: 'conf-probable', score: 70, icon: '!' };
+  }
+  if (isPLUi || isPLU) {
+    return { level: 'partiel',  label: 'Partiel - ' + gpuDoc.du_type + ' (statut: ' + gpuDoc.gpu_status + ')', cssClass: 'conf-partiel',  score: 50, icon: '!' };
+  }
+  if (type === 'POS' || type === 'CC') {
+    return { level: 'incertain', label: 'Incertain - ' + gpuDoc.du_type + ' (obsolete)', cssClass: 'conf-partiel',  score: 25, icon: 'X' };
+  }
+  return { level: 'rnu', label: 'Document inconnu', cssClass: 'conf-rnu', score: 10, icon: 'i' };
+}
+
+// ══════════════════════════════════════════════════════════
+// AFFICHAGE RESULTAT
+// ══════════════════════════════════════════════════════════
+
+function renderResult(data) {
+  pmRegistry  = [];
+  docRegistry = [];
+
+  document.getElementById('r-nom').textContent = data.nom;
+  document.getElementById('r-insee').textContent = 'INSEE : ' + data.insee;
+  document.getElementById('r-dep').textContent = data.departement || ('Dep. ' + data.insee.substring(0, 2));
+
+  var conf = data.confidence;
+  var confIcon = conf.level === 'certain' ? '&#9989;' : (conf.level === 'rnu' ? '&#8505;&#65039;' : '&#9888;&#65039;');
+  document.getElementById('r-conf').innerHTML =
+    '<span class="conf-badge ' + conf.cssClass + '">' + confIcon + ' ' + escHtml(conf.label) + ' <span class="conf-score">' + conf.score + '%</span></span>';
+
+  renderAlert(data);
+  renderSelectedDoc(data);
+
+  // Tous les docs GPU
+  if (data.gpuDoc && data.gpuDoc._allDocs && data.gpuDoc._allDocs.length > 0) {
+    renderAllDocs(data.gpuDoc._allDocs, data.gpuDoc.gpu_doc_id);
+    document.getElementById('card-alldocs').style.display = 'block';
+  }
+
+  // Pieces ecrites
+  if (data.writingMaterials && data.writingMaterials.length > 0) {
+    var docNom = data.gpuDoc ? data.gpuDoc.grid_title : '';
+    renderPM(data.writingMaterials, docNom);
+    document.getElementById('card-pm').style.display = 'block';
+  }
+
+  document.getElementById('card-commune').style.display = 'block';
+  // Verifier si des regles existent deja en base locale
+  checkExistingRules();
+  // Mettre a jour la section analyse PLU (lien PDF + commande Claude Code)
+  majAnalyseSection();
+  // Charger les scans PDF si disponibles
+  majScansRegles();
+}
+
+function renderAlert(data) {
+  var el   = document.getElementById('r-alert');
+  var conf = data.confidence;
+  var msg  = '';
+
+  if (conf.level === 'certain') {
+    msg = '<div class="alert alert-success">&#9989; <strong>Donnees fiables.</strong> Document ' + escHtml(data.gpuDoc.du_type) + ' en production avec reglement telechargeable. Vous pouvez utiliser ces regles dans l\'outil de faisabilite.</div>';
+  } else if (conf.level === 'probable') {
+    msg = '<div class="alert alert-warning">&#9888;&#65039; <strong>Document en production mais reglement absent dans le GPU.</strong> Le fichier PDF du reglement est : <strong>' + escHtml((data.zoneUrba || {}).nomfic || 'inconnu') + '</strong>. Consultez le site de la commune ou de l\'intercommunalite.</div>';
+  } else if (conf.level === 'partiel') {
+    msg = '<div class="alert alert-warning">&#9888;&#65039; <strong>PLU/PLUi pas encore en production.</strong> Statut : ' + escHtml(data.gpuDoc.gpu_status) + '. Verifiez aupres de la collectivite.</div>';
+  } else if (conf.level === 'incertain') {
+    msg = '<div class="alert alert-error">&#10060; <strong>POS ou CC detecte (obsolete).</strong> Un PLU est peut-etre en cours d\'elaboration. Renseignez-vous aupres de la mairie.</div>';
+  } else {
+    msg = '<div class="alert alert-info">&#8505;&#65039; <strong>Aucun document GPU pour cette commune.</strong> Le RNU s\'applique par defaut (Art. R.111-1 du Code de l\'Urbanisme).</div>';
+  }
+  el.innerHTML = msg;
+}
+
+function renderSelectedDoc(data) {
+  var el  = document.getElementById('r-doc-selected');
+  var doc = data.gpuDoc;
+
+  if (!doc) {
+    el.innerHTML = '<div class="alert alert-info"><strong>RNU</strong> — Aucun PLU/PLUi reference. Le Reglement National d\'Urbanisme s\'applique.</div>';
+    return;
+  }
+
+  var duType = (doc.du_type || '').toUpperCase();
+  var badgeClass = duType.indexOf('PLUI') >= 0 ? 'plui' : (duType.indexOf('PLU') >= 0 ? 'plu' : (duType.indexOf('POS') >= 0 ? 'pos' : (duType.indexOf('CC') >= 0 ? 'cc' : 'rnu')));
+  var statLabel = doc.gpu_status === 'production' ? 'En vigueur' : escHtml(doc.gpu_status || 'Non precise');
+  var statDot   = doc.gpu_status === 'production' ? '<span style="color:#16a34a">&#9679;</span>' : '<span style="color:#d97706">&#9679;</span>';
+  var gpuLink   = doc.gpu_doc_id ? (GPU_PORTAL + '/document/by-id/' + doc.gpu_doc_id) : '';
+
+  var html = '<div class="doc-detail">';
+
+  // Header with type badge and title
+  html += '<div class="doc-detail-header">';
+  html += '<span class="doc-type-badge ' + badgeClass + '">' + escHtml(doc.du_type) + '</span>';
+  html += '<div class="doc-detail-title">';
+  html += '<h3>' + escHtml(doc.grid_title || doc.name || 'Document d\'urbanisme') + '</h3>';
+  html += '<div class="doc-subtitle">' + statDot + ' ' + statLabel;
+  if (doc.gpu_timestamp) html += ' &middot; MAJ : ' + escHtml(formatDate(doc.gpu_timestamp));
+  html += '</div></div></div>';
+
+  html += '<div class="doc-detail-body">';
+
+  // Section : Informations du document
+  html += '<div class="doc-section">';
+  html += '<div class="doc-section-title"><span class="sec-icon">&#128203;</span> Informations du document</div>';
+  html += '<div class="doc-props">';
+  html += '<div class="doc-prop"><span class="doc-prop-label">Type</span><span class="doc-prop-value">' + escHtml(doc.du_type) + '</span></div>';
+  html += '<div class="doc-prop"><span class="doc-prop-label">Statut</span><span class="doc-prop-value">' + statDot + ' ' + statLabel + '</span></div>';
+  html += '<div class="doc-prop"><span class="doc-prop-label">Perimetre</span><span class="doc-prop-value">' + escHtml(doc.grid_title || 'Non precise') + '</span></div>';
+  html += '<div class="doc-prop"><span class="doc-prop-label">Identifiant</span><span class="doc-prop-value" style="font-family:monospace;font-size:.78rem">' + escHtml(doc.name || 'Non precise') + '</span></div>';
+  if (doc.gpu_timestamp) {
+    html += '<div class="doc-prop"><span class="doc-prop-label">Derniere MAJ</span><span class="doc-prop-value">' + escHtml(formatDate(doc.gpu_timestamp)) + '</span></div>';
+  }
+  if (doc.gpu_doc_id) {
+    html += '<div class="doc-prop"><span class="doc-prop-label">Doc ID</span><span class="doc-prop-value" style="font-family:monospace;font-size:.75rem">' + escHtml(doc.gpu_doc_id) + '</span></div>';
+  }
+  html += '</div></div>';
+
+  // Section : Zonage
+  var zu = data.zoneUrba;
+  if (zu) {
+    html += '<div class="doc-section">';
+    html += '<div class="doc-section-title"><span class="sec-icon">&#127759;</span> Zonage</div>';
+    html += '<div class="doc-props">';
+    html += '<div class="doc-prop"><span class="doc-prop-label">Zone</span><span class="doc-prop-value"><strong>' + escHtml(zu.libelle) + '</strong>' + (zu.libelong ? ' — ' + escHtml(zu.libelong) : '') + '</span></div>';
+    if (zu.typezone) {
+      html += '<div class="doc-prop"><span class="doc-prop-label">Type de zone</span><span class="doc-prop-value">' + escHtml(zu.typezone) + '</span></div>';
+    }
+    if (zu.nomfic) {
+      html += '<div class="doc-prop"><span class="doc-prop-label">Fichier reglement</span><span class="doc-prop-value" style="font-family:monospace;font-size:.78rem">' + escHtml(zu.nomfic) + '</span></div>';
+    }
+    if (zu.idurba) {
+      html += '<div class="doc-prop"><span class="doc-prop-label">ID Urba</span><span class="doc-prop-value" style="font-family:monospace;font-size:.75rem">' + escHtml(zu.idurba) + '</span></div>';
+    }
+    html += '</div></div>';
+  }
+
+  // Section : Liens
+  html += '<div class="doc-section">';
+  html += '<div class="doc-section-title"><span class="sec-icon">&#128279;</span> Liens</div>';
+  if (gpuLink) {
+    html += '<a class="doc-gpu-link" href="' + escAttr(gpuLink) + '" target="_blank">';
+    html += '<span class="link-icon">&#127760;</span>';
+    html += '<div><div>Voir sur le Geoportail de l\'Urbanisme</div>';
+    html += '<div class="link-detail">geoportail-urbanisme.gouv.fr &middot; Fiche complete du document</div>';
+    html += '</div></a>';
+  } else {
+    html += '<div style="font-size:.82rem;color:var(--text-muted)">Aucun lien GPU disponible</div>';
+  }
+  html += '</div>';
+
+  html += '</div></div>';
+  el.innerHTML = html;
+}
+
+function infoRow(label, val) {
+  return '<div class="info-cell"><label>' + label + '</label><div class="val">' + val + '</div></div>';
+}
+
+function renderAllDocs(allDocProps, bestDocId) {
+  docRegistry = [];
+  document.getElementById('docs-count').textContent = '(' + allDocProps.length + ')';
+
+  var html = allDocProps.map(function(p, i) {
+    docRegistry.push(p);
+    var isBest   = p.gpu_doc_id === bestDocId;
+    var typeClass = typeTagClass(p.du_type || '');
+    var stCl      = (p.gpu_status === 'production') ? 's-approuve' : 's-other';
+
+    return '<tr class="' + (isBest ? 'best' : '') + '">'
+      + '<td>' + (isBest ? '<span style="color:#f59e0b;font-size:1.1rem" title="Document retenu">&#9733;</span>' : (i + 1)) + '</td>'
+      + '<td><span class="tag ' + typeClass + '">' + escHtml(p.du_type || '?') + '</span></td>'
+      + '<td style="max-width:220px">' + escHtml(p.grid_title || p.name || '—') + '</td>'
+      + '<td><span class="tag ' + stCl + '">' + escHtml(p.gpu_status || '—') + '</span></td>'
+      + '<td>' + escHtml(formatDate(p.gpu_timestamp) || '—') + '</td>'
+      + '<td>' + (p.gpu_doc_id ? '<button class="pm-btn" onclick="loadDocPM(' + i + ')">Charger pieces</button>' : '—') + '</td>'
+      + '</tr>';
+  }).join('');
+
+  document.getElementById('docs-tbody').innerHTML = html;
+}
+
+function loadDocPM(idx) {
+  var p = docRegistry[idx];
+  if (!p || !p.gpu_doc_id) { setStatus('Identifiant GPU absent'); return; }
+  setStatus('Chargement des pieces ecrites...');
+  fetchWritingMaterials(p.gpu_doc_id).then(function(pm) {
+    if (pm && pm.length > 0) {
+      renderPM(pm, p.grid_title || p.name || '');
+      document.getElementById('card-pm').style.display = 'block';
+      document.getElementById('card-pm').scrollIntoView({ behavior: 'smooth' });
+      setStatus(pm.length + ' piece(s) chargee(s)');
+    } else {
+      setStatus('Aucune piece ecrite disponible pour ce document');
+    }
+  });
+}
+
+function renderPM(materials, docNomLabel) {
+  pmRegistry = [];
+  var el     = document.getElementById('pm-list');
+
+  document.getElementById('pm-doc-name').textContent = docNomLabel ? '- ' + docNomLabel : '';
+
+  if (!materials || materials.length === 0) {
+    el.innerHTML = '<div class="alert alert-info">Aucune piece ecrite disponible.</div>';
+    return;
+  }
+
+  // Categorize documents
+  var categories = {
+    reglement: { label: 'Reglement', icon: '&#9878;', items: [] },
+    padd:      { label: 'PADD', icon: '&#128204;', items: [] },
+    rapport:   { label: 'Rapport de presentation', icon: '&#128209;', items: [] },
+    oap:       { label: 'OAP', icon: '&#127748;', items: [] },
+    annexes:   { label: 'Annexes', icon: '&#128206;', items: [] },
+    autres:    { label: 'Autres documents', icon: '&#128196;', items: [] }
+  };
+
+  materials.forEach(function(pm) {
+    var title = (pm.titre || pm.libelle || pm.nom || pm.name || 'Document').toLowerCase();
+    var cat = 'autres';
+    if (title.indexOf('reglement') >= 0 || title.indexOf('règlement') >= 0) cat = 'reglement';
+    else if (title.indexOf('padd') >= 0) cat = 'padd';
+    else if (title.indexOf('rapport') >= 0 || title.indexOf('presentation') >= 0) cat = 'rapport';
+    else if (title.indexOf('oap') >= 0 || title.indexOf('orientation') >= 0) cat = 'oap';
+    else if (title.indexOf('annexe') >= 0) cat = 'annexes';
+    categories[cat].items.push(pm);
+  });
+
+  var html = '';
+  var catKeys = ['reglement', 'padd', 'oap', 'rapport', 'annexes', 'autres'];
+
+  catKeys.forEach(function(key) {
+    var cat = categories[key];
+    if (cat.items.length === 0) return;
+
+    // Sort within category by priority
+    cat.items.sort(function(a, b) { return pmPriority(b) - pmPriority(a); });
+
+    html += '<div class="pm-category">';
+    html += '<div class="pm-cat-header"><span class="cat-icon">' + cat.icon + '</span> ' + cat.label + ' <span class="pm-cat-count">' + cat.items.length + '</span></div>';
+    html += '<div class="pm-list">';
+
+    cat.items.forEach(function(pm) {
+      var title = pm.titre || pm.libelle || pm.nom || pm.name || 'Document';
+      var href  = pm.href  || pm.url    || pm.link || '';
+      if (!href) return;
+
+      var isPdf    = /\.pdf(\?.*)?$/i.test(href);
+      var iconCls  = isPdf ? 'pdf' : 'other';
+      var iconChar = isPdf ? 'PDF' : '&#128196;';
+      var isReg    = key === 'reglement';
+
+      // Extract filename from URL for display
+      var filename = '';
+      try { filename = decodeURIComponent(href.split('/').pop().split('?')[0]); } catch(e) { filename = href.split('/').pop(); }
+      if (filename.length > 50) filename = filename.substring(0, 47) + '...';
+
+      var idx = pmRegistry.length;
+      pmRegistry.push({ href: href, title: title });
+
+      html += '<div class="pm-item' + (isReg ? ' pm-highlight' : '') + '">';
+      html += '<div class="pm-icon ' + iconCls + '"><span style="font-size:.7rem;font-weight:700">' + iconChar + '</span></div>';
+      html += '<div class="pm-info">';
+      html += '<div class="pm-title" title="' + escAttr(title) + '">' + escHtml(title) + '</div>';
+      html += '<div class="pm-url" title="' + escAttr(href) + '">' + escHtml(filename) + '</div>';
+      html += '</div>';
+      html += '<div class="pm-actions">';
+      if (isPdf) {
+        html += '<button class="pm-btn pm-btn-primary" onclick="openPMByIdx(' + idx + ')">&#128065; Visualiser</button>';
+      }
+      html += '<a href="' + escAttr(href) + '" target="_blank" class="pm-btn">&#8599;&#65039; Ouvrir</a>';
+      html += '</div></div>';
+    });
+
+    html += '</div></div>';
+  });
+
+  el.innerHTML = html || '<div class="alert alert-info">Aucun fichier PDF dans les pieces ecrites.</div>';
+}
+
+function pmPriority(pm) {
+  var title = (pm.titre || pm.libelle || pm.nom || '').toLowerCase();
+  if (title.indexOf('reglement') >= 0) return 100;
+  if (title.indexOf('padd') >= 0) return 80;
+  if (title.indexOf('rapport') >= 0) return 60;
+  if (title.indexOf('annexe') >= 0) return 20;
+  return 50;
+}
+
+function openPMByIdx(idx) {
+  var pm = pmRegistry[idx];
+  if (pm) openPdf(pm.href, pm.title);
+}
+
+// ══════════════════════════════════════════════════════════
+// PDF VIEWER
+// ══════════════════════════════════════════════════════════
+
+function openPdf(url, title) {
+  currentPdf = url;
+  document.getElementById('pdf-title').textContent = title || 'Document PDF';
+  document.getElementById('btn-newtab').href         = url;
+  document.getElementById('pdf-fallback-link').href  = url;
+  document.getElementById('card-pdf').style.display  = 'block';
+  document.getElementById('card-pdf').scrollIntoView({ behavior: 'smooth' });
+  // data.geopf.fr supporte CORS : essayer fetch direct d abord
+  tryMethod('fetch');
+}
+
+function tryMethod(method) {
+  if (!currentPdf) return;
+  var frame    = document.getElementById('pdf-frame');
+  var fallback = document.getElementById('pdf-fallback');
+  var url      = currentPdf;
+
+  ['fetch', 'gdocs', 'pdfjs'].forEach(function(m) {
+    var btn = document.getElementById('btn-m-' + m);
+    if (btn) btn.classList.remove('active');
+  });
+  var activeBtn = document.getElementById('btn-m-' + method);
+  if (activeBtn) activeBtn.classList.add('active');
+
+  fallback.classList.remove('show');
+  frame.src = 'about:blank';
+
+  if (method === 'fetch') {
+    setStatus('Chargement PDF direct (fetch)...');
+    fetch(url, { mode: 'cors' })
+      .then(function(r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.blob();
+      })
+      .then(function(blob) {
+        var blobUrl = URL.createObjectURL(blob);
+        frame.src = blobUrl;
+        setStatus('PDF charge en local (fetch)');
+      })
+      .catch(function(err) {
+        setStatus('Fetch echoue (' + err.message + ') — bascule Google Docs...');
+        setTimeout(function() { tryMethod('gdocs'); }, 600);
+      });
+
+  } else if (method === 'gdocs') {
+    setStatus('Chargement via Google Docs Viewer...');
+    var gdUrl = 'https://docs.google.com/viewer?url=' + encodeURIComponent(url) + '&embedded=true';
+    frame.src = gdUrl;
+
+    var t = setTimeout(function() {
+      document.getElementById('pdf-fallback-msg').textContent =
+        'Google Docs Viewer n\'a pas pu charger ce PDF. Essayez PDF.js ou ouvrez dans un nouvel onglet.';
+      fallback.classList.add('show');
+      setStatus('Google Docs Viewer : delai depasse');
+    }, 15000);
+
+    frame.onload = function() {
+      clearTimeout(t);
+      setStatus('Affiche via Google Docs Viewer');
+    };
+
+  } else if (method === 'pdfjs') {
+    setStatus('Chargement via PDF.js...');
+    var jsUrl = 'https://mozilla.github.io/pdf.js/web/viewer.html?file=' + encodeURIComponent(url);
+    frame.src = jsUrl;
+  }
+}
+
+function closePdf() {
+  document.getElementById('card-pdf').style.display = 'none';
+  document.getElementById('pdf-frame').src = 'about:blank';
+  document.getElementById('pdf-fallback').classList.remove('show');
+  ['fetch', 'gdocs', 'pdfjs'].forEach(function(m) {
+    var btn = document.getElementById('btn-m-' + m);
+    if (btn) btn.classList.remove('active');
+  });
+  currentPdf = null;
+}
+
+// ══════════════════════════════════════════════════════════
+// PROGRESS
+// ══════════════════════════════════════════════════════════
+
+var STEPS = [
+  { id: 'commune', label: 'Geolocalisation de la commune' },
+  { id: 'gpu',     label: 'Interrogation GPU (document + zone-urba + RNU)' },
+  { id: 'docs',    label: 'Selection du document (tri PLUi > PLU)' },
+  { id: 'pm',      label: 'Recuperation des pieces ecrites' }
+];
+
+function showProgressCard(show) {
+  document.getElementById('card-progress').style.display = show ? 'block' : 'none';
+}
+
+function resetSteps() {
+  showProgressCard(true);
+  var html = STEPS.map(function(s) {
+    return '<div class="prog-step" id="ps-' + s.id + '">'
+      + '<div class="prog-icon pi-pending" id="pi-' + s.id + '"></div>'
+      + '<span id="pl-' + s.id + '">' + s.label + '</span>'
+      + '</div>';
+  }).join('');
+  document.getElementById('progress-body').innerHTML = html;
+}
+
+function stepActive(id) {
+  var row  = document.getElementById('ps-' + id);
+  var icon = document.getElementById('pi-' + id);
+  if (row)  row.className  = 'prog-step s-active';
+  if (icon) icon.className = 'prog-icon pi-spin';
+}
+
+function stepDone(id, info) {
+  var row  = document.getElementById('ps-' + id);
+  var icon = document.getElementById('pi-' + id);
+  var lbl  = document.getElementById('pl-' + id);
+  if (row)  row.className   = 'prog-step s-done';
+  if (icon) { icon.className = 'prog-icon pi-done'; icon.textContent = '\u2713'; }
+  if (lbl && info) lbl.textContent += ' — ' + info;
+}
+
+function stepError(id, msg) {
+  var row  = document.getElementById('ps-' + id);
+  var icon = document.getElementById('pi-' + id);
+  var lbl  = document.getElementById('pl-' + id);
+  if (row)  row.className   = 'prog-step s-error';
+  if (icon) { icon.className = 'prog-icon pi-error'; icon.textContent = '\u2715'; }
+  if (lbl && msg) lbl.textContent += ' — Erreur : ' + msg;
+}
+
+// ══════════════════════════════════════════════════════════
+// SIDEBAR
+// ══════════════════════════════════════════════════════════
+
+function renderSidebar() {
+  var el   = document.getElementById('commune-list');
+  var keys = Object.keys(communes);
+
+  if (keys.length === 0) {
+    el.innerHTML = '<div class="empty" style="padding:16px 10px"><div class="ei">&#127960;&#65039;</div><p style="color:rgba(255,255,255,.25);font-size:.72rem">Aucune commune analysee</p></div>';
+    return;
+  }
+
+  var sorted = keys.sort(function(a, b) {
+    return new Date(communes[b].analysedAt) - new Date(communes[a].analysedAt);
+  });
+
+  el.innerHTML = sorted.map(function(insee) {
+    var c        = communes[insee];
+    var type     = c.gpuDoc ? c.gpuDoc.du_type : 'RNU';
+    var conf     = c.confidence || {};
+    var typeClass = typeTagClass(type);
+    var isActive  = current && current.insee === insee;
+
+    return '<div class="c-item ' + (isActive ? 'active' : '') + '" data-insee="' + insee + '">'
+      + '<div class="cname">' + escHtml(c.nom) + '</div>'
+      + '<div class="cmeta">'
+      +   '<span class="tag ' + typeClass + '" style="font-size:.62rem">' + escHtml(type) + '</span>'
+      +   (conf.score ? ' ' + conf.score + '%' : '')
+      +   '<span style="margin-left:auto">' + fmtShort(c.analysedAt) + '</span>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function loadCommune(insee) {
+  var data = communes[insee];
+  if (!data) return;
+  current = data;
+  document.getElementById('search-input').value = data.nom;
+  hideResult();
+  showProgressCard(false);
+  renderResult(data);
+  renderSidebar();
+  setStatus(data.nom + ' charge depuis la base locale');
+  savePageState();
+}
+
+// ══════════════════════════════════════════════════════════
+// ACTIONS
+// ══════════════════════════════════════════════════════════
+
+function clearActive() {
+  current = null;
+  hideResult();
+  showProgressCard(false);
+  document.getElementById('search-input').value = '';
+  document.getElementById('search-input').focus();
+}
+
+// ══════════════════════════════════════════════════════════
+// IMPORT REGLES PLU (base locale)
+// ══════════════════════════════════════════════════════════
+
+var basePLU = {};
+try { var raw = localStorage.getItem('basePLU'); if (raw) basePLU = JSON.parse(raw); } catch(e) {}
+// Fusionner la base statique (base_regles_plu.js) — les valeurs localStorage priment
+if (window.BASE_REGLES_PLU) {
+  Object.keys(window.BASE_REGLES_PLU).forEach(function(k) {
+    if (!basePLU[k]) basePLU[k] = window.BASE_REGLES_PLU[k];
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+// UTILITAIRE — zones connues pour une commune
+// ══════════════════════════════════════════════════════════
+function getZonesForCommune(insee) {
+  var prefix = insee + '_';
+  var zones = [];
+  var seen = {};
+  Object.keys(basePLU).forEach(function(k) {
+    if (k.indexOf(prefix) === 0) {
+      var zone = k.substring(prefix.length);
+      if (!seen[zone]) {
+        seen[zone] = true;
+        zones.push({
+          zone: zone,
+          key: k,
+          commune: basePLU[k].commune || '',
+          source: basePLU[k].source || '',
+          hasRules: !!(basePLU[k].ces || basePLU[k].hmax)
+        });
+      }
+    }
+  });
+  zones.sort(function(a, b) { return a.zone.localeCompare(b.zone); });
+  return zones;
+}
+
+// ══════════════════════════════════════════════════════════
+// WFS GEOPLATEFORME — fallback fiable pour zone PLU
+// ══════════════════════════════════════════════════════════
+
+function pointInPolygon(pt, ring) {
+  var x = pt[0], y = pt[1], inside = false;
+  for (var i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    var xi = ring[i][0], yi = ring[i][1];
+    var xj = ring[j][0], yj = ring[j][1];
+    if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}
+
+async function detectZoneWFS(insee, lon, lat) {
+  try {
+    var url = 'https://data.geopf.fr/wfs/ows?service=WFS&version=2.0.0&request=GetFeature' +
+      '&typeName=wfs_du:zone_urba&outputFormat=application/json' +
+      '&CQL_FILTER=partition=%27DU_' + insee + '%27&count=500&srsName=EPSG:4326';
+    var resp = await fetch(url);
+    var data = await resp.json();
+    if (!data.features || !data.features.length) return null;
+    var pt = [lon, lat];
+    var found = null;
+    var nearby = [];
+    for (var i = 0; i < data.features.length; i++) {
+      var feat = data.features[i];
+      var geom = feat.geometry;
+      if (!geom) continue;
+      var rings = [];
+      if (geom.type === 'Polygon') rings = [geom.coordinates[0]];
+      else if (geom.type === 'MultiPolygon') rings = geom.coordinates.map(function(p) { return p[0]; });
+      var isInside = false;
+      for (var r = 0; r < rings.length; r++) {
+        if (pointInPolygon(pt, rings[r])) { isInside = true; break; }
+      }
+      var p = feat.properties || {};
+      var zoneInfo = {
+        libelle: p.libelle || '', libelong: p.libelong || '',
+        typezone: p.typezone || '', partition: p.partition || '',
+        idurba: p.idurba || '', _source: 'wfs-geopf'
+      };
+      if (isInside) { found = zoneInfo; }
+      else {
+        var minDist = Infinity;
+        for (var r = 0; r < rings.length; r++) {
+          var ring = rings[r];
+          for (var k = 0; k < ring.length - 1; k++) {
+            var d = distPointSegment(pt, ring[k], ring[k + 1]);
+            if (d < minDist) minDist = d;
+          }
+        }
+        var metres = minDist * 111000;
+        if (metres < 50) nearby.push({ zone: p.libelle, dist: Math.round(metres) });
+      }
+    }
+    if (found) {
+      nearby.sort(function(a, b) { return a.dist - b.dist; });
+      found._nearby = nearby.slice(0, 3);
+      found._onBoundary = (nearby.length > 0 && nearby[0].dist < 30);
+    }
+    return found;
+  } catch (e) {
+    console.warn('WFS Geoplateforme indisponible:', e.message);
+    return null;
+  }
+}
+
+function distPointSegment(pt, a, b) {
+  var dx = b[0] - a[0], dy = b[1] - a[1];
+  var len2 = dx * dx + dy * dy;
+  if (len2 === 0) return Math.sqrt((pt[0] - a[0]) * (pt[0] - a[0]) + (pt[1] - a[1]) * (pt[1] - a[1]));
+  var t = Math.max(0, Math.min(1, ((pt[0] - a[0]) * dx + (pt[1] - a[1]) * dy) / len2));
+  var px = a[0] + t * dx, py = a[1] + t * dy;
+  return Math.sqrt((pt[0] - px) * (pt[0] - px) + (pt[1] - py) * (pt[1] - py));
+}
+
+// ══════════════════════════════════════════════════════════
+// REGISTRE PDF — suivi des telechargements et analyses
+// ══════════════════════════════════════════════════════════
+var pdfRegistry = {};
+try { var rr = localStorage.getItem('fplu_pdf_registry'); if (rr) pdfRegistry = JSON.parse(rr); } catch(e) {}
+
+function savePdfRegistry() {
+  try { localStorage.setItem('fplu_pdf_registry', JSON.stringify(pdfRegistry)); } catch(e) {}
+}
+
+function enregistrerTelechargement(nomfic, url, insee, commune) {
+  if (!nomfic) return;
+  var key = nomfic.replace(/\.pdf$/i, '');
+  if (!pdfRegistry[key]) {
+    pdfRegistry[key] = { nomfic: nomfic, url: url, communes: [], zones_analysees: [], telecharge: new Date().toISOString() };
+  }
+  // Ajouter la commune si pas deja presente
+  var existing = pdfRegistry[key].communes.find(function(c) { return c.insee === insee; });
+  if (!existing) {
+    pdfRegistry[key].communes.push({ insee: insee, nom: commune });
+  }
+  pdfRegistry[key].dernierAcces = new Date().toISOString();
+  savePdfRegistry();
+}
+
+function enregistrerAnalyseZone(nomfic, insee, zone) {
+  if (!nomfic) return;
+  var key = nomfic.replace(/\.pdf$/i, '');
+  if (!pdfRegistry[key]) return;
+  var cleZone = insee + '_' + zone;
+  if (pdfRegistry[key].zones_analysees.indexOf(cleZone) < 0) {
+    pdfRegistry[key].zones_analysees.push(cleZone);
+  }
+  pdfRegistry[key].dernierAcces = new Date().toISOString();
+  savePdfRegistry();
+}
+
+function toggleImportPanel() {
+  var body = document.getElementById('import-panel-body');
+  var chev = document.getElementById('import-chevron');
+  if (body.style.display === 'none') {
+    body.style.display = 'block';
+    chev.innerHTML = '&#9650;';
+  } else {
+    body.style.display = 'none';
+    chev.innerHTML = '&#9660;';
+  }
+}
+
+function checkExistingRules() {
+  if (!current) return;
+  // Priorite : zone detectee par l'utilisateur (GEST_ANALYSE.zone) > zone du document GPU
+  var zone = GEST_ANALYSE.zone || (current.zoneUrba ? current.zoneUrba.libelle || '' : '');
+  var cle = current.insee + '_' + zone;
+  var badge = document.getElementById('import-status-badge');
+  var zoneLabel = document.getElementById('import-zone-label');
+  var srcLabel = document.getElementById('import-source-label');
+  var preview = document.getElementById('gest-rules-preview');
+  if (zoneLabel) zoneLabel.textContent = zone || '(non detectee)';
+
+  var r = basePLU[cle];
+  if (r) {
+    badge.textContent = '\u2705 Regles disponibles';
+    badge.className = 'import-badge has-rules';
+    var isVerifie = r.source === 'gpu-verifie' || r.source === 'manual';
+    if (srcLabel) srcLabel.textContent = isVerifie ? 'Source verifiee' : 'Estimation - a verifier';
+    // Afficher apercu des regles
+    if (preview) {
+      preview.innerHTML = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px 8px;font-size:.78rem;padding:8px;background:var(--bg);border-radius:6px">'
+        + '<div>CES <b>' + (r.ces||'?') + '%</b></div>'
+        + '<div>H max <b>' + (r.hmax||'?') + 'm</b></div>'
+        + '<div>R. voie <b>' + (r.rrue!=null?r.rrue:'?') + 'm</b></div>'
+        + '<div>R. fond <b>' + (r.rfond!=null?r.rfond:'?') + 'm</b></div>'
+        + '<div>Lat. G <b>' + (r.rg!=null?r.rg:'?') + 'm</b></div>'
+        + '<div>Lat. D <b>' + (r.rd!=null?r.rd:'?') + 'm</b></div>'
+        + '<div>Faitage <b>' + (r.hfait||0) + 'm</b></div>'
+        + '<div>EV <b>' + (r.pct_espaces_verts||0) + '%</b></div>'
+        + '</div>'
+        + (r.notes ? '<div style="font-size:.7rem;color:var(--text-muted);margin-top:4px">' + escHtml(r.notes) + '</div>' : '');
+    }
+    // Pre-remplir les champs de correction manuelle
+    var fields = {ces:'gi-ces',hmax:'gi-hmax',hfait:'gi-hfait',rrue:'gi-rrue',rfond:'gi-rfond',rg:'gi-rg',rd:'gi-rd',cos:'gi-cos',pct_espaces_verts:'gi-pct_ev'};
+    Object.keys(fields).forEach(function(f) {
+      var el = document.getElementById(fields[f]);
+      if (el && r[f] != null) el.value = r[f];
+    });
+    if (document.getElementById('gi-usages') && r.usages) document.getElementById('gi-usages').value = r.usages;
+    if (document.getElementById('gi-notes') && r.notes) document.getElementById('gi-notes').value = r.notes;
+  } else {
+    badge.textContent = 'Aucune regle';
+    badge.className = 'import-badge no-rules';
+    if (srcLabel) srcLabel.textContent = '';
+    if (preview) preview.innerHTML = '<div style="font-size:.78rem;color:#d97706;padding:6px 0">Aucune regle en base pour cette zone. Ouvrez la correction manuelle ou demandez a Claude Code de completer la base.</div>';
+    // Auto-ouvrir le panneau si pas de regles
+    document.getElementById('import-panel-body').style.display = 'block';
+    document.getElementById('import-chevron').innerHTML = '&#9650;';
+  }
+}
+
+function genererPromptGest() {
+  if (!current) return '';
+  var zone = current.zoneUrba ? current.zoneUrba.libelle || '' : '';
+  var regUrl = '';
+  if (current.writingMaterials && current.writingMaterials.length) {
+    var reg = current.writingMaterials.find(function(pm) {
+      return (pm.titre || pm.nomfic || '').toLowerCase().indexOf('reglement') >= 0;
+    });
+    if (reg && reg.href) regUrl = reg.href;
+  }
+  if (!regUrl && current.zoneUrba && current.zoneUrba.nomfic && current.gpuDoc) {
+    regUrl = GPU_CDN + '/' + current.gpuDoc.partition + '/' + current.gpuDoc.gpu_doc_id + '/' + current.zoneUrba.nomfic;
+  }
+  var prompt = 'Tu es un expert en urbanisme francais. J\'ai besoin des regles du PLU pour :\n- Commune : ' + current.nom + ' (INSEE: ' + current.insee + ')\n- Zone : ' + zone + '\n';
+  if (regUrl) prompt += '- URL du reglement : ' + regUrl + '\n';
+  prompt += '\nExtrais les regles specifiques de la zone "' + zone + '". Chaque zone a des regles DIFFERENTES.\n';
+  if (regUrl) prompt += 'Lis le document de reglement a cette URL.\n';
+  else prompt += 'Recherche sur internet le reglement du PLU/PLUi de cette commune.\n';
+  prompt += '\nRetourne UNIQUEMENT un JSON valide avec ces champs :\n{"ces":<emprise au sol % entier>,"hmax":<hauteur max facade en metres>,"hfait":<hauteur faitage ou 0>,"rrue":<recul voie en metres>,"rfond":<recul fond parcelle en metres>,"rg":<recul lateral gauche en metres>,"rd":<recul lateral droit en metres>,"cos":<coefficient occupation sols ou 0>,"pct_espaces_verts":<% espaces verts obligatoire ou 0>,"usages":"<usages autorises en 1 phrase>","notes":"<source du document et contraintes>"}';
+  return prompt;
+}
+
+function copierPromptGest() {
+  var prompt = genererPromptGest();
+  navigator.clipboard.writeText(prompt).then(function() {
+    showToast('Prompt copie dans le presse-papier !');
+    var btn = document.getElementById('btn-copier-prompt');
+    if (btn) { btn.textContent = '\u2705 Copie !'; setTimeout(function() { btn.innerHTML = '&#128203; Copier le prompt pour Claude'; }, 2000); }
+  });
+}
+
+function syncBaseToServer(){
+  fetch('/api/save-regles',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(basePLU)})
+    .then(function(r){return r.json()})
+    .then(function(d){if(d.ok)console.log('[SYNC] Base regles sauvee sur serveur ('+d.count+' entrees)');})
+    .catch(function(){/* serveur pas lance = mode offline */});
+}
+function showToast(msg) {
+  var el = document.getElementById('toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'toast';
+    el.className = 'toast-msg';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(function() { el.classList.remove('show'); }, 2500);
+}
+
+function validerReglesJSON_gest(raw) {
+  raw = (raw || '').trim().replace(/```json|```/g, '').trim();
+  var jsonMatch = raw.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) return { error: 'Pas de JSON valide detecte' };
+  try {
+    var rules = JSON.parse(jsonMatch[0]);
+    var required = ['ces','hmax','rrue','rfond','rg','rd'];
+    var missing = required.filter(function(f) { return rules[f] === undefined || rules[f] === null; });
+    if (missing.length) return { error: 'Champs manquants : ' + missing.join(', ') };
+    if (rules.ces < 0 || rules.ces > 100) return { error: 'CES doit etre entre 0 et 100%' };
+    if (rules.hmax > 50) return { error: 'Hauteur > 50m semble incorrect' };
+    return { rules: rules };
+  } catch(e) {
+    return { error: 'Erreur JSON : ' + e.message };
+  }
+}
+
+function previsualiserGest() {
+  var ta = document.getElementById('gest-json-ta');
+  var preview = document.getElementById('gest-import-preview');
+  if (!ta || !ta.value.trim()) { preview.innerHTML = '<div style="color:#dc2626;font-size:.8rem">Collez le JSON dans le champ ci-dessus</div>'; return; }
+  var result = validerReglesJSON_gest(ta.value);
+  if (result.error) { preview.innerHTML = '<div style="color:#dc2626;font-size:.8rem">' + escHtml(result.error) + '</div>'; return; }
+  var r = result.rules;
+  preview.innerHTML = '<div class="import-preview">'
+    + '<div style="color:#16a34a;font-weight:600;margin-bottom:6px">\u2705 JSON valide</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;font-size:.78rem">'
+    + '<div>CES : <b>' + r.ces + '%</b></div><div>H max : <b>' + r.hmax + ' m</b></div>'
+    + '<div>Faitage : <b>' + (r.hfait || 0) + ' m</b></div><div>COS : <b>' + (r.cos || 0) + '</b></div>'
+    + '<div>Recul voie : <b>' + r.rrue + ' m</b></div><div>Recul fond : <b>' + r.rfond + ' m</b></div>'
+    + '<div>Lateral G : <b>' + r.rg + ' m</b></div><div>Lateral D : <b>' + r.rd + ' m</b></div>'
+    + (r.pct_espaces_verts ? '<div>Espaces verts : <b>' + r.pct_espaces_verts + '%</b></div>' : '')
+    + '</div>'
+    + (r.usages ? '<div style="font-size:.75rem;margin-top:4px">Usages : ' + escHtml(r.usages) + '</div>' : '')
+    + (r.notes ? '<div style="font-size:.75rem;margin-top:2px;color:var(--text-muted)">Notes : ' + escHtml(r.notes) + '</div>' : '')
+    + '<button class="btn btn-success btn-sm" onclick="sauvegarderImportGest()" style="width:100%;margin-top:8px">Sauvegarder dans la base locale</button>'
+    + '</div>';
+  window._gestPendingImport = r;
+}
+
+function sauvegarderImportGest() {
+  if (!window._gestPendingImport || !current) return;
+  var zone = current.zoneUrba ? current.zoneUrba.libelle || '' : '';
+  var cle = current.insee + '_' + zone;
+  var rules = window._gestPendingImport;
+  rules.zone = zone;
+  basePLU[cle] = Object.assign({}, rules, { source: 'import-chat', commune: current.nom, savedAt: new Date().toISOString() });
+  try { localStorage.setItem('basePLU', JSON.stringify(basePLU)); } catch(e) {}
+  syncBaseToServer();
+  showToast('Regles sauvegardees pour ' + current.nom + ' / Zone ' + zone);
+  checkExistingRules();
+  document.getElementById('gest-import-preview').innerHTML = '<div style="color:#16a34a;font-weight:600">\u2705 Sauvegarde OK</div>';
+  window._gestPendingImport = null;
+  setStatus('Regles importees pour ' + current.nom + ' zone ' + zone);
+}
+
+function sauvegarderManuelGest() {
+  if (!current) return;
+  var zone = current.zoneUrba ? current.zoneUrba.libelle || '' : '';
+  var cle = current.insee + '_' + zone;
+  var fields = { ces: 'gi-ces', hmax: 'gi-hmax', hfait: 'gi-hfait', rrue: 'gi-rrue', rfond: 'gi-rfond', rg: 'gi-rg', rd: 'gi-rd', cos: 'gi-cos', pct_espaces_verts: 'gi-pct_ev' };
+  var rules = { zone: zone };
+  Object.keys(fields).forEach(function(f) {
+    var el = document.getElementById(fields[f]);
+    rules[f] = el ? parseFloat(el.value) || 0 : 0;
+  });
+  var usEl = document.getElementById('gi-usages'); if (usEl) rules.usages = usEl.value;
+  var ntEl = document.getElementById('gi-notes'); if (ntEl) rules.notes = ntEl.value;
+  // Validation minimale
+  if (!rules.ces && !rules.hmax) { showToast('Remplissez au moins CES et H max'); return; }
+  basePLU[cle] = Object.assign({}, rules, { source: 'manual', commune: current.nom, savedAt: new Date().toISOString() });
+  try { localStorage.setItem('basePLU', JSON.stringify(basePLU)); } catch(e) {}
+  syncBaseToServer();
+  showToast('Saisie manuelle sauvegardee pour ' + current.nom + ' / Zone ' + zone);
+  checkExistingRules();
+  setStatus('Regles saisies pour ' + current.nom + ' zone ' + zone);
+}
+
+// ══════════════════════════════════════════════════════════
+// ALIMENTER LA BASE — Commande Claude Code
+// ══════════════════════════════════════════════════════════
+
+function majAnalyseSection() {
+  if (!current) return;
+  // Construire l'URL du reglement
+  var regUrl = '';
+  var nomfic = '';
+  if (current.writingMaterials && current.writingMaterials.length) {
+    var pm = current.writingMaterials.find(function(p) {
+      return (p.titre || p.nomfic || '').toLowerCase().indexOf('reglement') >= 0;
+    });
+    if (pm && pm.href) { regUrl = pm.href; nomfic = pm.nomfic || ''; }
+  }
+  if (!regUrl && current.zoneUrba && current.zoneUrba.nomfic && current.gpuDoc) {
+    nomfic = current.zoneUrba.nomfic;
+    regUrl = GPU_CDN + '/' + current.gpuDoc.partition + '/' + current.gpuDoc.gpu_doc_id + '/' + nomfic;
+  }
+  // Lien telechargement PDF
+  var dlBtn = document.getElementById('gest-dl-reglement');
+  var infoEl = document.getElementById('gest-reglement-info');
+  if (dlBtn) {
+    var savePdfBtn = document.getElementById('gest-btn-save-pdf');
+    if (regUrl) {
+      dlBtn.href = regUrl;
+      dlBtn.style.opacity = '1';
+      dlBtn.style.pointerEvents = 'auto';
+      if (infoEl) infoEl.textContent = nomfic || 'Reglement PLU disponible';
+      if (savePdfBtn) savePdfBtn.style.display = 'inline-block';
+    } else {
+      dlBtn.href = '#';
+      dlBtn.style.opacity = '.4';
+      dlBtn.style.pointerEvents = 'none';
+      if (infoEl) infoEl.textContent = 'Aucun reglement trouve — telechargez-le depuis le Geoportail de l\'Urbanisme';
+      if (savePdfBtn) savePdfBtn.style.display = 'none';
+    }
+  }
+  // Statut du registre PDF
+  var pdfStatusEl = document.getElementById('gest-pdf-status');
+  if (pdfStatusEl && nomfic) {
+    var regKey = nomfic.replace(/\.pdf$/i, '');
+    var regEntry = pdfRegistry[regKey];
+    if (regEntry) {
+      var nbZones = regEntry.zones_analysees.length;
+      var dlDate = new Date(regEntry.telecharge).toLocaleDateString('fr-FR');
+      pdfStatusEl.style.display = 'block';
+      pdfStatusEl.style.background = 'rgba(22,163,74,.08)';
+      pdfStatusEl.style.border = '1px solid rgba(22,163,74,.25)';
+      pdfStatusEl.style.color = '#16a34a';
+      pdfStatusEl.innerHTML = '&#9989; Deja telecharge le ' + dlDate + (nbZones > 0 ? ' — ' + nbZones + ' zone(s) analysee(s)' : ' — aucune zone analysee');
+    } else {
+      pdfStatusEl.style.display = 'block';
+      pdfStatusEl.style.background = 'rgba(217,119,6,.06)';
+      pdfStatusEl.style.border = '1px solid rgba(217,119,6,.2)';
+      pdfStatusEl.style.color = '#d97706';
+      pdfStatusEl.innerHTML = '&#9888;&#65039; PDF pas encore telecharge — cliquez "Telecharger" puis verifiez dans votre dossier Telechargements';
+    }
+  }
+  // Mettre a jour GEST_ANALYSE avec les infos de la commune courante
+  var commune = current.nom || '?';
+  var insee = current.insee || '?';
+  var pdfName = nomfic || (insee + '_reglement.pdf');
+  GEST_ANALYSE.pdfName = pdfName;
+  GEST_ANALYSE.commune = commune;
+  GEST_ANALYSE.insee = insee;
+  GEST_ANALYSE.zone = '';
+  GEST_ANALYSE.lat = 0;
+  GEST_ANALYSE.lng = 0;
+  // Reset le champ adresse et la zone detectee quand on change de commune
+  var addrInput = document.getElementById('gest-addr-input');
+  if (addrInput) { addrInput.value = ''; addrInput.placeholder = 'Ex: 12 rue de la Paix a ' + commune + '...'; }
+  renderAddrHistory(insee);
+  var zoneBadge = document.getElementById('gest-zone-badge');
+  if (zoneBadge) { zoneBadge.style.display = 'none'; zoneBadge.textContent = ''; }
+  var detectStatus = document.getElementById('gest-detect-status');
+  if (detectStatus) { detectStatus.style.display = 'none'; }
+  // Afficher la commande sans zone pour l'instant
+  gest_mettreAJourCommande(null);
+}
+
+// Stockage interne pour la section analyse
+var GEST_ANALYSE = { pdfName: '', commune: '', insee: '', zone: '', lat: 0, lng: 0 };
+
+// ── Historique des adresses etudiees ─────────────────────────────
+function loadAddrHistory() {
+  try { return JSON.parse(localStorage.getItem('fplu_address_history') || '{}'); } catch(e) { return {}; }
+}
+function saveAddrToHistory(insee, address, zone, lat, lng) {
+  if (!insee || !address) return;
+  var hist = loadAddrHistory();
+  if (!hist[insee]) hist[insee] = [];
+  // Eviter les doublons (meme adresse)
+  hist[insee] = hist[insee].filter(function(h) { return h.address !== address; });
+  hist[insee].unshift({ address: address, zone: zone, lat: lat, lng: lng, date: new Date().toISOString().substring(0, 10) });
+  if (hist[insee].length > 10) hist[insee] = hist[insee].slice(0, 10);
+  localStorage.setItem('fplu_address_history', JSON.stringify(hist));
+}
+function renderAddrHistory(insee) {
+  var wrap = document.getElementById('gest-addr-history');
+  if (!wrap) return;
+  var hist = loadAddrHistory();
+  var entries = (hist[insee] || []).slice(0, 5);
+  if (!entries.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  wrap.innerHTML = '<div style="font-size:.68rem;color:var(--text-muted);margin-bottom:4px;font-weight:600">Adresses recentes :</div>' +
+    entries.map(function(h) {
+      return '<div class="addr-hist-item" onclick="selectHistoryAddr(\'' + h.address.replace(/'/g, "\\'") + '\',' + h.lat + ',' + h.lng + ')" ' +
+        'style="font-size:.7rem;padding:4px 8px;margin-bottom:2px;border-radius:4px;cursor:pointer;color:var(--text-muted);display:flex;justify-content:space-between;align-items:center;border:1px solid transparent" ' +
+        'onmouseover="this.style.background=\'rgba(37,99,235,.08)\';this.style.borderColor=\'rgba(37,99,235,.2)\'" ' +
+        'onmouseout="this.style.background=\'\';this.style.borderColor=\'transparent\'">' +
+        '<span>&#128205; ' + h.address + '</span>' +
+        '<span style="font-size:.62rem;color:var(--accent);font-weight:600">Zone ' + (h.zone || '?') + '</span>' +
+        '</div>';
+    }).join('');
+}
+function selectHistoryAddr(address, lat, lng) {
+  var addrInput = document.getElementById('gest-addr-input');
+  if (addrInput) addrInput.value = address;
+  GEST_ANALYSE.lat = lat;
+  GEST_ANALYSE.lng = lng;
+  gest_detecterZone();
+}
+
+// ── Persistance d'etat (sessionStorage) ─────────────────────────
+function savePageState() {
+  if (!current) return;
+  var addrInput = document.getElementById('gest-addr-input');
+  var state = {
+    insee: current.insee,
+    commune: current.nom,
+    address: addrInput ? addrInput.value : '',
+    zone: GEST_ANALYSE.zone || '',
+    lat: GEST_ANALYSE.lat || 0,
+    lng: GEST_ANALYSE.lng || 0
+  };
+  sessionStorage.setItem('fplu_base_plu_state', JSON.stringify(state));
+}
+
+function gest_mettreAJourCommande(zone) {
+  var pdfName = GEST_ANALYSE.pdfName || ((current ? current.insee : '?') + '_reglement.pdf');
+  var commune = GEST_ANALYSE.commune || (current ? current.nom : '?');
+  var cmd;
+  if (zone) {
+    cmd = '/add-plu C:\\Users\\fclar\\Downloads\\' + pdfName + ' ' + commune + ' ' + (GEST_ANALYSE.insee || '') + ' zone:' + zone;
+  } else {
+    cmd = '/add-plu C:\\Users\\fclar\\Downloads\\' + pdfName + ' ' + commune + ' ' + (GEST_ANALYSE.insee || '') + '  ← saisissez une adresse pour detecter la zone';
+  }
+  var cmdEl = document.getElementById('gest-claude-cmd');
+  if (cmdEl) cmdEl.textContent = cmd;
+}
+
+// ── Autocomplete adresse (BAN) ──────────────────────────────────
+var gest_acTimer = null;
+function gest_addrAutocomplete() {
+  clearTimeout(gest_acTimer);
+  var q = (document.getElementById('gest-addr-input') || {}).value || '';
+  if (q.length < 3) { var s = document.getElementById('gest-addr-sugs'); if (s) s.style.display = 'none'; return; }
+  gest_acTimer = setTimeout(function() {
+    var insee = current ? current.insee : '';
+    var url = 'https://api-adresse.data.gouv.fr/search/?q=' + encodeURIComponent(q) + '&limit=5&autocomplete=1' + (insee ? '&citycode=' + insee : '');
+    fetch(url).then(function(r){ return r.json(); }).then(function(d) {
+      var sugs = document.getElementById('gest-addr-sugs');
+      if (!sugs || !d.features || !d.features.length) { if (sugs) sugs.style.display = 'none'; return; }
+      sugs._feats = d.features;
+      sugs.innerHTML = d.features.map(function(f, i) {
+        var p = f.properties;
+        return '<div onclick="gest_pickSug(' + i + ')" style="padding:8px 12px;cursor:pointer;font-size:.78rem;border-bottom:1px solid var(--border);transition:background .1s" onmouseover="this.style.background=\'#f1f5f9\'" onmouseout="this.style.background=\'\'"><div style="font-weight:500">' + (p.label||'') + '</div><div style="font-size:.68rem;color:var(--text-muted)">' + (p.postcode||'') + ' ' + (p.city||'') + '</div></div>';
+      }).join('');
+      sugs.style.display = 'block';
+    }).catch(function(){});
+  }, 300);
+}
+
+function gest_pickSug(i) {
+  var sugs = document.getElementById('gest-addr-sugs');
+  if (!sugs || !sugs._feats) return;
+  var f = sugs._feats[i];
+  if (!f) return;
+  document.getElementById('gest-addr-input').value = f.properties.label || '';
+  sugs.style.display = 'none';
+  GEST_ANALYSE.lat = f.geometry.coordinates[1];
+  GEST_ANALYSE.lng = f.geometry.coordinates[0];
+  gest_detecterZone();
+}
+
+// Fermer suggestions si clic ailleurs
+document.addEventListener('click', function(e) {
+  var sugs = document.getElementById('gest-addr-sugs');
+  if (sugs && !sugs.contains(e.target) && e.target.id !== 'gest-addr-input') sugs.style.display = 'none';
+});
+
+// ── Override zone manuelle (GPU sans zonage) ─────────────────────
+function gest_afficherOverrideZone(insee) {
+  var panel = document.getElementById('gest-zone-override');
+  var select = document.getElementById('gest-zone-select');
+  var info = document.getElementById('gest-zone-override-info');
+  if (!panel || !select) return;
+
+  var zones = getZonesForCommune(insee);
+  select.innerHTML = '<option value="">-- Choisir une zone --</option>';
+  select.style.display = '';
+  zones.forEach(function(z) {
+    var opt = document.createElement('option');
+    opt.value = z.zone;
+    opt.textContent = z.zone + (z.hasRules ? ' (regles en base)' : '');
+    select.appendChild(opt);
+  });
+
+  // Afficher le plan de zonage si disponible
+  var zonageImg = document.getElementById('gest-zonage-img');
+  if (!zonageImg) {
+    var imgDiv = document.createElement('div');
+    imgDiv.id = 'gest-zonage-container';
+    imgDiv.style.cssText = 'margin:8px 0;border:1px solid var(--border);border-radius:6px;overflow:hidden;background:#f8fafc';
+    imgDiv.innerHTML = '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);padding:6px 10px;border-bottom:1px solid var(--border);background:#fff">Plan de zonage officiel — identifiez votre zone</div>' +
+      '<img id="gest-zonage-img" src="pdf_scans/' + insee + '_zonage/plan_zonage_complet.png" alt="Plan de zonage" style="width:100%;max-height:300px;object-fit:contain;cursor:zoom-in;display:block" onclick="this.style.maxHeight=this.style.maxHeight===\'none\'?\'300px\':\'none\'" onerror="this.parentElement.style.display=\'none\'"/>' +
+      '<div style="font-size:8px;color:var(--text-muted);padding:3px 10px;text-align:center">Cliquer pour agrandir/reduire</div>';
+    panel.insertBefore(imgDiv, select.parentElement);
+  }
+
+  if (zones.length > 0) {
+    info.innerHTML = zones.length + ' zone(s) connue(s) en base. <b>Consultez le plan ci-dessus</b> et selectionnez la zone applicable a cette adresse.<br><span style="color:#92400e;font-size:.6rem">\u26a0 En cas de doute, verifiez aupres du service urbanisme ou demandez un CU.</span>';
+  } else {
+    info.innerHTML = 'Aucune zone en base — saisissez le nom de zone manuellement apres consultation du plan de zonage ci-dessus.<br><span style="color:#92400e;font-size:.6rem">\u26a0 Verification recommandee aupres du service urbanisme.</span>';
+    select.style.display = 'none';
+  }
+  panel.style.display = 'block';
+}
+
+function gest_appliquerZoneManuelle(zone) {
+  if (!zone) return;
+  var zoneBadge = document.getElementById('gest-zone-badge');
+  var statusEl = document.getElementById('gest-detect-status');
+
+  GEST_ANALYSE.zone = zone;
+
+  // Badge violet = selection manuelle
+  if (zoneBadge) {
+    zoneBadge.textContent = 'Zone ' + zone + ' (manuelle)';
+    zoneBadge.style.display = 'inline-block';
+    zoneBadge.style.background = 'rgba(124,58,237,.1)';
+    zoneBadge.style.color = '#7c3aed';
+    zoneBadge.style.borderColor = 'rgba(124,58,237,.3)';
+  }
+  if (statusEl) {
+    statusEl.style.color = '#7c3aed';
+    statusEl.textContent = '✓ Zone ' + zone + ' selectionnee manuellement (plan de zonage)';
+  }
+  document.getElementById('gest-zone-override').style.display = 'none';
+
+  // Meme flux que detection auto reussie
+  gest_mettreAJourCommande(zone);
+  var q = document.getElementById('gest-addr-input');
+  saveAddrToHistory(GEST_ANALYSE.insee, q ? q.value.trim() : '', zone, GEST_ANALYSE.lat, GEST_ANALYSE.lng);
+  renderAddrHistory(GEST_ANALYSE.insee);
+  savePageState();
+  if (GEST_ANALYSE.pdfName) afficherBoutonCopierCmd(GEST_ANALYSE.pdfName);
+  checkExistingRules();
+  majScansRegles();
+
+  // Adapter l'etape 3 selon presence en base
+  var cleZone = (GEST_ANALYSE.insee || '') + '_' + zone;
+  var cmdSection = document.getElementById('gest-cmd-section');
+  var existingRule = basePLU && basePLU[cleZone];
+  if (existingRule && existingRule.source === 'gpu-verifie') {
+    var desc = document.getElementById('gest-cmd-desc');
+    if (desc) desc.innerHTML = '✅ <b>Zone ' + zone + ' deja en base (gpu-verifie)</b> — vous pouvez lancer l\'etude de faisabilite directement.';
+    var btnAnalyser = document.getElementById('gest-btn-analyser');
+    if (btnAnalyser) { btnAnalyser.disabled = false; btnAnalyser.textContent = '🏗 Lancer l\'etude de faisabilite'; }
+  }
+}
+
+// ── Detection de zone via apicarto ──────────────────────────────
+async function gest_detecterZone() {
+  var addrInput = document.getElementById('gest-addr-input');
+  var statusEl = document.getElementById('gest-detect-status');
+  var zoneBadge = document.getElementById('gest-zone-badge');
+  var q = addrInput ? addrInput.value.trim() : '';
+  if (!q) { showToast('Saisissez une adresse'); return; }
+
+  if (statusEl) { statusEl.style.display = 'block'; statusEl.style.color = 'var(--text-muted)'; statusEl.textContent = '⏳ Geocodage de l\'adresse…'; }
+  if (zoneBadge) zoneBadge.style.display = 'none';
+
+  try {
+    // 1. Geocoder si pas encore de coordonnees
+    if (!GEST_ANALYSE.lat || !GEST_ANALYSE.lng) {
+      var insee = current ? current.insee : '';
+      var gUrl = 'https://api-adresse.data.gouv.fr/search/?q=' + encodeURIComponent(q) + '&limit=1' + (insee ? '&citycode=' + insee : '');
+      var gr = await fetch(gUrl);
+      var gd = await gr.json();
+      if (!gd.features || !gd.features.length) {
+        if (statusEl) { statusEl.style.color = 'var(--danger)'; statusEl.textContent = '✗ Adresse non trouvee — verifiez l\'orthographe'; }
+        return;
+      }
+      GEST_ANALYSE.lat = gd.features[0].geometry.coordinates[1];
+      GEST_ANALYSE.lng = gd.features[0].geometry.coordinates[0];
+    }
+
+    // 2. Appel apicarto zone-urba (parametre geom obligatoire — lon/lat non reconnus)
+    if (statusEl) statusEl.textContent = '⏳ Detection de la zone PLU…';
+    var lat = GEST_ANALYSE.lat, lng = GEST_ANALYSE.lng;
+    var geomPoint = JSON.stringify({ type: 'Point', coordinates: [lng, lat] });
+    var zr = await fetch('https://apicarto.ign.fr/api/gpu/zone-urba?geom=' + encodeURIComponent(geomPoint) + '&_limit=5');
+    var zd = await zr.json();
+
+    // ── Fiabilite GPU : ne JAMAIS utiliser une zone d'une autre commune ──
+    var insee = GEST_ANALYSE.insee;
+    var pluiPartition = (current && current.gpuDoc && current.gpuDoc.partition) ? current.gpuDoc.partition : '';
+    var gpuEmpty = !zd.features || !zd.features.length;
+    var matchedFeat = gpuEmpty ? null : zd.features.find(function(f) {
+      var p = f.properties || {};
+      // Matcher la partition communale OU la partition PLUi intercommunale
+      return p.partition === 'DU_' + insee || (pluiPartition && p.partition === pluiPartition) || (p.idurba || '').indexOf(insee) === 0;
+    });
+    var gpuReliability = gpuEmpty ? 'empty' : (matchedFeat ? 'matched' : 'fallback');
+
+    // Cas FALLBACK ou EMPTY : tenter le WFS Geoplateforme avant selection manuelle
+    if (gpuReliability !== 'matched') {
+      if (statusEl) {
+        statusEl.style.display = 'block';
+        statusEl.style.color = '#d97706';
+        statusEl.textContent = '\u26a1 API standard sans zonage — interrogation WFS Geoplateforme...';
+      }
+      // ── NIVEAU 2 : WFS Geoplateforme ──
+      // D'abord essayer avec la partition commune, puis avec la partition PLUi si disponible
+      var wfsResult = await detectZoneWFS(insee, GEST_ANALYSE.lng, GEST_ANALYSE.lat);
+      if (!wfsResult && current && current.gpuDoc && current.gpuDoc.partition) {
+        // PLUi : la partition est intercommunale (ex: DU_200058097), pas communale (DU_93071)
+        var pluiCode = current.gpuDoc.partition.replace('DU_', '');
+        if (pluiCode !== insee) {
+          if (statusEl) statusEl.textContent = '\u26a1 Partition communale vide — essai partition PLUi ' + pluiCode + '...';
+          wfsResult = await detectZoneWFS(pluiCode, GEST_ANALYSE.lng, GEST_ANALYSE.lat);
+        }
+      }
+      if (wfsResult) {
+        // WFS a trouve la zone ! Meme flux que matched
+        var zone = wfsResult.libelle;
+        GEST_ANALYSE.zone = zone;
+        if (zoneBadge) {
+          zoneBadge.textContent = 'Zone ' + zone + ' (WFS)';
+          zoneBadge.style.display = 'inline-block';
+          zoneBadge.style.background = 'rgba(5,150,105,.1)';
+          zoneBadge.style.color = '#059669';
+          zoneBadge.style.borderColor = 'rgba(5,150,105,.3)';
+        }
+        var overridePanel = document.getElementById('gest-zone-override');
+        if (overridePanel) overridePanel.style.display = 'none';
+        if (statusEl) {
+          statusEl.style.color = 'var(--success)';
+          var statusTxt = '\u2713 Zone detectee via WFS : ' + zone + (wfsResult.libelong ? ' \u2014 ' + wfsResult.libelong : '');
+          if (wfsResult._onBoundary && wfsResult._nearby.length) {
+            statusTxt += '\n\u26a0 Attention : parcelle a ' + wfsResult._nearby[0].dist + 'm de la zone ' + wfsResult._nearby[0].zone + ' — verifiez sur le plan de zonage';
+            statusEl.style.color = '#d97706';
+          }
+          statusEl.textContent = statusTxt;
+        }
+        gest_mettreAJourCommande(zone);
+        saveAddrToHistory(GEST_ANALYSE.insee, q, zone, GEST_ANALYSE.lat, GEST_ANALYSE.lng);
+        renderAddrHistory(GEST_ANALYSE.insee);
+        savePageState();
+        if (GEST_ANALYSE.pdfName) afficherBoutonCopierCmd(GEST_ANALYSE.pdfName);
+        checkExistingRules();
+        majScansRegles();
+        // Adapter etape 3
+        var cleZone = (GEST_ANALYSE.insee || '') + '_' + zone;
+        var existingRule = basePLU && basePLU[cleZone];
+        if (existingRule && existingRule.source === 'gpu-verifie') {
+          var desc = document.getElementById('gest-cmd-desc');
+          if (desc) desc.innerHTML = '\u2705 <b>Zone ' + zone + ' deja en base (gpu-verifie)</b> — lancez l\'etude de faisabilite.';
+          var btnAnalyser = document.getElementById('gest-btn-analyser');
+          if (btnAnalyser) { btnAnalyser.disabled = false; btnAnalyser.textContent = '\ud83c\udfd7 Lancer l\'etude de faisabilite'; }
+        }
+        GEST_ANALYSE.lat = 0; GEST_ANALYSE.lng = 0;
+        return;
+      }
+
+      // WFS aussi vide → dernier recours : selection manuelle
+      if (statusEl) {
+        statusEl.style.display = 'block';
+        statusEl.style.color = '#d97706';
+        statusEl.textContent = '\u26a0 Aucune source automatique disponible — selectionnez la zone manuellement';
+      }
+      if (zoneBadge) {
+        zoneBadge.textContent = '\u26a0 Zone non confirmee';
+        zoneBadge.style.display = 'inline-block';
+        zoneBadge.style.background = 'rgba(217,119,6,.1)';
+        zoneBadge.style.color = '#d97706';
+        zoneBadge.style.borderColor = 'rgba(217,119,6,.3)';
+      }
+      gest_afficherOverrideZone(insee);
+      gest_mettreAJourCommande(null);
+      return;
+    }
+
+    // Cas MATCHED : GPU a confirme la zone pour cette commune
+    var feat = matchedFeat;
+    var gp = feat.properties;
+    var zone = gp.libelle || gp.typezone || '?';
+    GEST_ANALYSE.zone = zone;
+
+    // Afficher le badge (bleu = GPU confirme)
+    if (zoneBadge) {
+      zoneBadge.textContent = 'Zone ' + zone;
+      zoneBadge.style.display = 'inline-block';
+      zoneBadge.style.background = 'rgba(37,99,235,.1)';
+      zoneBadge.style.color = 'var(--accent)';
+      zoneBadge.style.borderColor = 'rgba(37,99,235,.3)';
+    }
+    // Masquer le panneau override s'il etait visible
+    var overridePanel = document.getElementById('gest-zone-override');
+    if (overridePanel) overridePanel.style.display = 'none';
+    if (statusEl) {
+      statusEl.style.color = 'var(--success)';
+      statusEl.textContent = '✓ Zone detectee : ' + zone + (gp.libelong ? ' — ' + gp.libelong : '');
+    }
+
+    // Mettre a jour la commande avec la zone
+    gest_mettreAJourCommande(zone);
+
+    // Sauvegarder l'adresse dans l'historique + etat session
+    saveAddrToHistory(GEST_ANALYSE.insee, q, zone, GEST_ANALYSE.lat, GEST_ANALYSE.lng);
+    renderAddrHistory(GEST_ANALYSE.insee);
+    savePageState();
+
+    // Afficher le bouton copier commande si PDF disponible
+    if (GEST_ANALYSE.pdfName) afficherBoutonCopierCmd(GEST_ANALYSE.pdfName);
+
+    // Rafraichir le panneau "Regles PLU" avec la zone detectee
+    checkExistingRules();
+    // Recharger les scans pour la zone detectee
+    majScansRegles();
+
+    // ── Adapter l'etape 3 selon presence en base ──────────────────
+    var cleZone = (GEST_ANALYSE.insee || '') + '_' + zone;
+    var cmdSection = document.getElementById('gest-cmd-section');
+    var existingRule = basePLU && basePLU[cleZone];
+    if (cmdSection) {
+      if (existingRule) {
+        // Zone deja en base : remplacer l'etape 3 par un message de confirmation
+        var src = existingRule.source || 'base';
+        var srcLabel = src === 'gpu-verifie' ? 'Verifie depuis PDF' : src === 'import-chat' ? 'Importe depuis Claude' : 'Manuel';
+        var savedAt = existingRule.savedAt ? existingRule.savedAt.substring(0, 10) : '';
+        cmdSection.style.background = 'rgba(22,163,74,.06)';
+        cmdSection.style.border = '1px solid rgba(22,163,74,.3)';
+        cmdSection.innerHTML =
+          '<div style="font-size:.78rem;font-weight:600;color:#16a34a;margin-bottom:6px">3. ✅ Zone ' + zone + ' — deja en base</div>' +
+          '<div style="font-size:.7rem;color:#166534;margin-bottom:10px">Source : ' + srcLabel + (savedAt ? ' · ' + savedAt : '') + '<br>Les regles sont disponibles — aucune analyse necessaire.</div>' +
+          '<div style="background:rgba(22,163,74,.1);border:1px solid rgba(22,163,74,.4);border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:.78rem;color:#14532d">' +
+          '&#10003;&nbsp; Tout est pret ! Vous pouvez lancer votre simulation de faisabilite.' +
+          '</div>' +
+          '<button class="btn btn-primary" style="width:100%;padding:13px;font-size:.95rem;font-weight:600;border-radius:8px;margin-bottom:8px" onclick="lancerFaisabilite()">&#128208; Lancer l\'etude de faisabilite &#8594;</button>' +
+          '<div style="text-align:center">' +
+          '<button class="btn btn-secondary btn-sm" style="font-size:.72rem" onclick="forcerReanalyse()">&#128260; Forcer une nouvelle analyse</button>' +
+          '</div>';
+        showToast('Zone ' + zone + ' deja en base !');
+      } else {
+        // Zone absente : afficher le bouton d'analyse normal
+        cmdSection.style.background = '';
+        cmdSection.style.border = '1px solid var(--border)';
+        cmdSection.innerHTML =
+          '<div style="font-size:.78rem;font-weight:600;color:var(--text);margin-bottom:4px">3. Lancer l\'analyse du PDF</div>' +
+          '<div id="gest-cmd-desc" style="font-size:.7rem;color:var(--text-muted);margin-bottom:8px">Cliquez pour lancer l\'analyse — Claude Code lit le PDF, extrait les regles de la zone et remplit la base automatiquement.</div>' +
+          '<button id="gest-btn-analyser" class="btn btn-primary" onclick="lancerAnalysePLU()" style="width:100%;padding:10px;font-size:.85rem;font-weight:600;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:8px">' +
+          '<span>&#9889;</span> <span id="gest-btn-analyser-txt">Analyser cette zone</span></button>' +
+          '<div id="gest-analyse-status" style="display:none;margin-top:8px;padding:8px 10px;border-radius:6px;font-size:.72rem"></div>';
+        showToast('Zone ' + zone + ' detectee — cliquez "Analyser" pour lancer.');
+      }
+    }
+
+  } catch(e) {
+    if (statusEl) { statusEl.style.color = 'var(--danger)'; statusEl.textContent = '✗ Erreur reseau : ' + e.message; }
+  }
+  // Reset coordonnees pour la prochaine adresse
+  GEST_ANALYSE.lat = 0; GEST_ANALYSE.lng = 0;
+}
+
+function copierCommandeGest() {
+  var cmdEl = document.getElementById('gest-claude-cmd');
+  if (!cmdEl) return;
+  navigator.clipboard.writeText(cmdEl.textContent).then(function() {
+    var toast = document.getElementById('gest-cmd-toast');
+    if (toast) { toast.style.display = 'block'; setTimeout(function() { toast.style.display = 'none'; }, 2000); }
+    showToast('Commande copiee — collez-la dans Claude Code !');
+  }).catch(function() {
+    var range = document.createRange(); range.selectNodeContents(cmdEl);
+    var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+    showToast('Selectionnez et copiez (Ctrl+C)');
+  });
+}
+
+// ── Forcer une nouvelle analyse meme si zone deja en base ───────────────────
+function forcerReanalyse() {
+  var cmdSection = document.getElementById('gest-cmd-section');
+  if (!cmdSection) return;
+  cmdSection.style.background = '';
+  cmdSection.style.border = '1px solid var(--border)';
+  cmdSection.innerHTML =
+    '<div style="font-size:.78rem;font-weight:600;color:var(--text);margin-bottom:4px">3. Lancer l\'analyse du PDF</div>' +
+    '<div id="gest-cmd-desc" style="font-size:.7rem;color:var(--text-muted);margin-bottom:8px">Mise a jour de la zone — les nouvelles valeurs remplaceront les precedentes.</div>' +
+    '<button id="gest-btn-analyser" class="btn btn-primary" onclick="lancerAnalysePLU()" style="width:100%;padding:10px;font-size:.85rem;font-weight:600;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:8px">' +
+    '<span>&#9889;</span> <span id="gest-btn-analyser-txt">Relancer l\'analyse</span></button>' +
+    '<div id="gest-analyse-status" style="display:none;margin-top:8px;padding:8px 10px;border-radius:6px;font-size:.72rem"></div>';
+}
+
+function onPdfDownloadClick() {
+  if (!current) return;
+  var nomfic = GEST_ANALYSE.pdfName;
+  var dlBtn = document.getElementById('gest-dl-reglement');
+  var url = dlBtn ? dlBtn.href : '';
+  enregistrerTelechargement(nomfic, url, current.insee, current.nom);
+  // Rafraichir le statut
+  setTimeout(majAnalyseSection, 300);
+}
+
+// ── Telecharger le PDF dans un dossier choisi (File System Access API) ─────
+// Dossier memorise pour sauvegardes directes (persist en memoire pour la session)
+var _pdfDirHandle = null;
+
+async function choisirDossierPdf() {
+  try {
+    _pdfDirHandle = await window.showDirectoryPicker({ id: 'pdf-reglements', mode: 'readwrite' });
+    showToast('Dossier selectionne : ' + _pdfDirHandle.name);
+    return _pdfDirHandle;
+  } catch(e) {
+    if (e.name !== 'AbortError') showToast('Erreur selection dossier : ' + e.message);
+    return null;
+  }
+}
+
+async function downloadPdfToFolder() {
+  if (!current) return;
+  var dlBtn = document.getElementById('gest-dl-reglement');
+  var url = dlBtn ? dlBtn.href : '';
+  var filename = GEST_ANALYSE.pdfName || (current.insee + '_reglement.pdf');
+  if (!url || url === '#') { showToast('Aucune URL de reglement disponible'); return; }
+
+  var saveBtn = document.getElementById('gest-btn-save-pdf');
+  var saveStatus = document.getElementById('gest-pdf-save-status');
+
+  // Verifier que le navigateur supporte l'API File System Access
+  if (!window.showDirectoryPicker) {
+    // Fallback : telecharger classiquement avec le nom suggere
+    var a = document.createElement('a');
+    a.href = url; a.download = filename; a.target = '_blank';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    showToast('Telechargement lance — sauvegardez dans pdf_reglements/');
+    enregistrerTelechargement(filename, url, current.insee, current.nom);
+    setTimeout(majAnalyseSection, 300);
+    return;
+  }
+
+  // Premiere fois : demander le dossier. Ensuite : sauvegarde directe.
+  if (!_pdfDirHandle) {
+    showToast('Selectionnez le dossier pdf_reglements (une seule fois)');
+    var handle = await choisirDossierPdf();
+    if (!handle) return;
+  }
+
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Telechargement...'; }
+
+  try {
+    // 1. Telecharger le PDF en memoire
+    var resp = await fetch(url);
+    if (!resp.ok) throw new Error('Erreur HTTP ' + resp.status + ' lors du telechargement');
+    var blob = await resp.blob();
+
+    // 2. Ecrire directement dans le dossier memorise (pas de dialogue)
+    var fileHandle = await _pdfDirHandle.getFileHandle(filename, { create: true });
+    var writable = await fileHandle.createWritable();
+    await writable.write(blob);
+    await writable.close();
+
+    var sizeKB = Math.round(blob.size / 1024);
+    if (saveStatus) {
+      saveStatus.style.display = 'block';
+      saveStatus.style.background = 'rgba(22,163,74,.08)';
+      saveStatus.style.border = '1px solid rgba(22,163,74,.25)';
+      saveStatus.style.color = '#16a34a';
+      saveStatus.innerHTML = '&#9989; <strong>' + escHtml(filename) + '</strong> sauvegarde (' + sizeKB + ' KB)';
+    }
+    if (saveBtn) { saveBtn.textContent = '\u2705 Sauvegarde !'; saveBtn.style.background = 'var(--success)'; saveBtn.style.color = 'white'; }
+    enregistrerTelechargement(filename, url, current.insee, current.nom);
+    setTimeout(majAnalyseSection, 300);
+    showToast('PDF sauvegarde !');
+    // Afficher le bouton copier commande Claude
+    afficherBoutonCopierCmd(filename);
+  } catch (err) {
+    // L'utilisateur a annule le dialogue ou erreur reseau
+    if (err.name === 'AbortError') {
+      if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '\uD83D\uDCE5 Sauver en local'; }
+      return;
+    }
+    if (saveStatus) {
+      saveStatus.style.display = 'block';
+      saveStatus.style.background = 'rgba(220,38,38,.06)';
+      saveStatus.style.border = '1px solid rgba(220,38,38,.2)';
+      saveStatus.style.color = '#dc2626';
+      saveStatus.innerHTML = '&#10060; Erreur : ' + escHtml(err.message);
+    }
+    if (saveBtn) { saveBtn.textContent = '\u274C Erreur'; saveBtn.style.background = 'var(--danger)'; saveBtn.style.color = 'white'; }
+  }
+  // Reactiver le bouton apres 3s
+  setTimeout(function() {
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '\uD83D\uDCE5 Sauver en local'; saveBtn.style.background = ''; saveBtn.style.color = ''; }
+  }, 3000);
+}
+
+// ── Bouton copier commande Claude Code après sauvegarde PDF ─────────────────
+var _savedPdfFilename = '';
+
+function afficherBoutonCopierCmd(filename) {
+  _savedPdfFilename = filename;
+  var wrap = document.getElementById('gest-copy-cmd-wrap');
+  if (wrap) wrap.style.display = 'block';
+  var preview = document.getElementById('gest-cmd-preview');
+  if (preview) {
+    var cmd = genererCommandeClaude();
+    preview.textContent = cmd;
+    preview.style.display = 'block';
+  }
+}
+
+function genererCommandeClaude() {
+  var pdf = _savedPdfFilename || GEST_ANALYSE.pdfName || '';
+  var commune = GEST_ANALYSE.commune || '';
+  var insee = GEST_ANALYSE.insee || '';
+  var zone = GEST_ANALYSE.zone || '';
+  var pdfPath = 'C:\\Users\\fclar\\OneDrive - CADENCE ARCHITECTES\\Documents\\CLAUDE-projet\\pdf_reglements\\' + pdf;
+  var addrInput = document.getElementById('gest-addr-input');
+  var adresse = addrInput ? addrInput.value.trim() : '';
+
+  // Construire le prompt enrichi avec tout le contexte disponible
+  var cmd = '/add-plu "' + pdfPath + '" "' + commune + '" "' + insee + '" zone:' + zone;
+
+  // Ajouter l'adresse si disponible
+  if (adresse) cmd += ' adresse:"' + adresse + '"';
+
+  // Coordonnees GPS
+  if (GEST_ANALYSE.lat && GEST_ANALYSE.lng) {
+    cmd += ' gps:' + GEST_ANALYSE.lat.toFixed(6) + ',' + GEST_ANALYSE.lng.toFixed(6);
+  }
+
+  // Contexte depuis la base existante
+  var cleZone = insee + '_' + zone;
+  var existing = basePLU && basePLU[cleZone];
+  if (existing) {
+    var ctx = [];
+    if (existing.indices) ctx.push('indices:' + existing.indices);
+    if (existing.ces) ctx.push('ces=' + existing.ces + '%');
+    if (existing.hmax) ctx.push('hmax=' + existing.hmax + 'm');
+    if (existing.rrue !== undefined) ctx.push('rrue=' + existing.rrue + 'm');
+    if (existing.rfond !== undefined) ctx.push('rfond=' + existing.rfond + 'm');
+    if (existing.oap_label) ctx.push('OAP:"' + existing.oap_label + '"');
+    if (existing.oap_hmax) ctx.push('oap_hmax=' + existing.oap_hmax + 'm');
+    if (existing.terrain_angle) ctx.push('TERRAIN_ANGLE');
+    if (existing.source) ctx.push('source:' + existing.source);
+    if (ctx.length) cmd += ' contexte:[' + ctx.join(' | ') + ']';
+    // Ajouter un message selon l'etat
+    if (existing.source === 'gpu-verifie' || existing.source === 'sig-pte-verifie') {
+      cmd += ' -- Zone deja verifiee en base. Verifier si mise a jour necessaire ou completer (OAP, terrain angle, scans manquants).';
+    }
+  } else {
+    cmd += ' -- Zone PAS encore en base. Extraire toutes les regles, chercher OAP et regles terrain d\'angle.';
+  }
+
+  return cmd;
+}
+
+function copierCommandeClaude() {
+  var cmd = genererCommandeClaude();
+  navigator.clipboard.writeText(cmd).then(function() {
+    showToast('Commande copiee ! Collez dans Claude Code.');
+    var btn = document.getElementById('gest-btn-copy-cmd');
+    if (btn) { btn.innerHTML = '&#9989; Copie !'; btn.style.background = '#d1fae5'; btn.style.color = '#065f46'; btn.style.borderColor = '#6ee7b7'; }
+    setTimeout(function() {
+      if (btn) { btn.innerHTML = '&#128203; Copier la commande pour Claude Code'; btn.style.background = '#f0f4ff'; btn.style.color = '#4338ca'; btn.style.borderColor = '#c7d2fe'; }
+    }, 3000);
+  }).catch(function() { showToast('Erreur copie — copiez manuellement'); });
+}
+
+// ── Lancer l'analyse via le serveur local (serve.ps1) ───────────────────────
+async function lancerAnalysePLU() {
+  if (!GEST_ANALYSE.pdfName || !GEST_ANALYSE.commune || !GEST_ANALYSE.insee) {
+    showToast('Selectionnez dabord une commune'); return;
+  }
+  if (!GEST_ANALYSE.zone) {
+    showToast('Saisissez une adresse pour detecter la zone (etape 2)'); return;
+  }
+
+  var btnTxt = document.getElementById('gest-btn-analyser-txt');
+  var statusEl = document.getElementById('gest-analyse-status');
+  var btn = document.getElementById('gest-btn-analyser');
+
+  // Verifier si la zone est deja en base
+  var cleBase = GEST_ANALYSE.insee + '_' + GEST_ANALYSE.zone;
+  if (basePLU && basePLU[cleBase]) {
+    if (statusEl) {
+      statusEl.style.display = 'block';
+      statusEl.style.background = 'rgba(22,163,74,.08)';
+      statusEl.style.border = '1px solid rgba(22,163,74,.25)';
+      statusEl.style.color = '#16a34a';
+      statusEl.innerHTML = '&#9989; Zone <strong>' + GEST_ANALYSE.zone + '</strong> deja en base — regles disponibles.<br><span style="opacity:.7">Cliquez "Lancer l\'etude de faisabilite" pour utiliser ces regles.</span>';
+    }
+    if (btnTxt) btnTxt.textContent = 'Analyser cette zone';
+    return;
+  }
+
+  // Indiquer le chargement
+  if (btnTxt) btnTxt.textContent = 'Envoi en cours...';
+  if (btn) btn.disabled = true;
+
+  var payload = {
+    pdf: 'C:\\Users\\fclar\\Downloads\\' + GEST_ANALYSE.pdfName,
+    commune: GEST_ANALYSE.commune,
+    insee: GEST_ANALYSE.insee,
+    zone: GEST_ANALYSE.zone
+  };
+
+  try {
+    // Essayer d'abord via le serveur local (localhost:7821)
+    var resp = await fetch('http://localhost:7821/api/trigger-analysis', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(4000)
+    });
+
+    if (resp.ok) {
+      // Succes : analyse en file d'attente
+      if (statusEl) {
+        statusEl.style.display = 'block';
+        statusEl.style.background = 'rgba(37,99,235,.08)';
+        statusEl.style.border = '1px solid rgba(37,99,235,.25)';
+        statusEl.style.color = 'var(--accent)';
+        statusEl.innerHTML = '&#9989; Analyse en attente dans Claude Code<br><span style="opacity:.7">Basculez dans Claude Code et tapez <strong>ok</strong> pour lancer l\'analyse.</span>';
+      }
+      if (btnTxt) btnTxt.textContent = 'Analyse en cours dans Claude Code...';
+      showToast('Analyse lancee — revenez dans Claude Code !');
+      // Enregistrer dans le registre PDF
+      enregistrerTelechargement(GEST_ANALYSE.pdfName, '', GEST_ANALYSE.insee, GEST_ANALYSE.commune);
+      enregistrerAnalyseZone(GEST_ANALYSE.pdfName, GEST_ANALYSE.insee, GEST_ANALYSE.zone);
+    } else {
+      throw new Error('Serveur repond ' + resp.status);
+    }
+  } catch(e) {
+    // Reessais automatiques toutes les 2s pendant 20s max (le serveur demarre en arriere-plan)
+    var maxTries = 10, tried = 0;
+    var retryLoop = async function() {
+      tried++;
+      var dots = '.'.repeat((tried % 3) + 1);
+      if (statusEl) {
+        statusEl.style.display = 'block';
+        statusEl.style.background = 'rgba(37,99,235,.06)';
+        statusEl.style.border = '1px solid rgba(37,99,235,.2)';
+        statusEl.style.color = 'var(--text-muted)';
+        statusEl.innerHTML = '&#8987; Demarrage' + dots + ' (' + tried + '/' + maxTries + ')';
+      }
+      if (btnTxt) btnTxt.textContent = 'Connexion' + dots;
+      await new Promise(function(r){ setTimeout(r, 2000); });
+      try {
+        var r = await fetch('http://localhost:7821/api/trigger-analysis', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          signal: AbortSignal.timeout(4000)
+        });
+        if (r.ok) {
+          if (statusEl) {
+            statusEl.style.background = 'rgba(37,99,235,.08)';
+            statusEl.style.border = '1px solid rgba(37,99,235,.25)';
+            statusEl.style.color = 'var(--accent)';
+            statusEl.innerHTML = '&#9989; Analyse en attente dans Claude Code<br><span style="opacity:.7">Basculez dans Claude Code et tapez <strong>ok</strong> pour lancer l\'analyse.</span>';
+          }
+          if (btnTxt) btnTxt.textContent = 'Analyse en cours dans Claude Code...';
+          showToast('Analyse lancee — revenez dans Claude Code !');
+          if (btn) btn.disabled = false;
+          return;
+        }
+      } catch(e2) { /* pas encore pret */ }
+      if (tried < maxTries) { await retryLoop(); }
+      else {
+        // Abandon apres 20s — message simple
+        if (statusEl) {
+          statusEl.style.background = 'rgba(100,116,139,.08)';
+          statusEl.style.border = '1px solid rgba(100,116,139,.2)';
+          statusEl.style.color = 'var(--text-muted)';
+          statusEl.innerHTML = '&#8987; Demarrage lent — veuillez reessayer dans quelques secondes.';
+        }
+        if (btnTxt) btnTxt.textContent = 'Analyser cette zone';
+        if (btn) btn.disabled = false;
+      }
+    };
+    await retryLoop();
+    return;
+  }
+  if (btn) btn.disabled = false;
+}
+
+// ══════════════════════════════════════════════════════════
+// LANCER FAISABILITE
+// ══════════════════════════════════════════════════════════
+
+function lancerFaisabilite() {
+  if (!current) return;
+  // Construire l'URL du règlement — priorité aux writingMaterials (URLs déjà vérifiées/réécrites)
+  var regUrl = '';
+  var nomfic = '';
+  // 1) Chercher d'abord dans les writingMaterials (URLs déjà réécrites via GPU_CDN)
+  if (current.writingMaterials && current.writingMaterials.length) {
+    var reglementPM = current.writingMaterials.find(function(pm) {
+      return (pm.titre || pm.nomfic || '').toLowerCase().indexOf('reglement') >= 0;
+    });
+    if (reglementPM && reglementPM.href) {
+      regUrl = reglementPM.href;
+      nomfic = reglementPM.nomfic || '';
+    }
+  }
+  // 2) Sinon construire depuis zoneUrba.nomfic (avec /documents/ dans le chemin)
+  if (!regUrl && current.zoneUrba && current.zoneUrba.nomfic && current.gpuDoc) {
+    nomfic = current.zoneUrba.nomfic;
+    regUrl = GPU_CDN + '/' + current.gpuDoc.partition + '/' + current.gpuDoc.gpu_doc_id + '/' + nomfic;
+  }
+  // Passer toutes les données PLU via localStorage
+  // Priorite zone : celle detectee par l'utilisateur > celle du document GPU
+  var zoneEffective = GEST_ANALYSE.zone || (current.zoneUrba ? current.zoneUrba.libelle || '' : '');
+  var addrInput = document.getElementById('gest-addr-input');
+  var adresseEffective = addrInput ? addrInput.value.trim() : '';
+  var launchData = {
+    // Commune & localisation
+    commune: current.nom,
+    insee: current.insee,
+    departement: current.departement || '',
+    postcode: current.insee ? current.insee.substring(0, 2) : '',
+    lat: current.lat || 0,
+    lng: current.lon || 0,
+    label: current.nom + (current.departement ? ' (' + current.departement + ')' : ''),
+    // Adresse saisie par l'utilisateur (pre-remplissage dans faisabilite.html)
+    adresse: adresseEffective,
+    // Document urbanisme
+    docType: current.gpuDoc ? current.gpuDoc.du_type || '' : '',
+    docTitle: current.gpuDoc ? current.gpuDoc.grid_title || '' : '',
+    docId: current.gpuDoc ? current.gpuDoc.gpu_doc_id || '' : '',
+    docPartition: current.gpuDoc ? current.gpuDoc.partition || '' : '',
+    docStatus: current.gpuDoc ? current.gpuDoc.gpu_status || '' : '',
+    // Zone urbanisme (zone detectee par l'utilisateur en priorite)
+    zone: zoneEffective,
+    zoneLong: current.zoneUrba ? current.zoneUrba.libelong || '' : '',
+    typeZone: current.zoneUrba ? current.zoneUrba.typezone || '' : '',
+    nomfic: nomfic,
+    regUrl: regUrl,
+    // Confiance
+    confidence: current.confidence || null,
+    // Regles pre-chargees ?
+    rulesPreloaded: !!basePLU[current.insee + '_' + zoneEffective],
+    // Pièces écrites (URLs)
+    writingMaterials: (current.writingMaterials || []).map(function(pm) {
+      return { titre: pm.titre, href: pm.href, nomfic: pm.nomfic || '' };
+    })
+  };
+  try { localStorage.setItem('fplu_launch', JSON.stringify(launchData)); } catch(e) { console.warn('localStorage indisponible (file://) — passage par URL params'); }
+  // Si dans l'app (iframe), notifier le parent au lieu de naviguer
+  if (window.parent !== window) {
+    window.parent.postMessage({type: 'plu-launch-faisabilite', commune: current.nom, insee: current.insee}, '*');
+  } else {
+    // Construire l'URL avec les parametres essentiels en fallback (file:// sans localStorage)
+    var params = 'commune=' + encodeURIComponent(launchData.commune) +
+      '&insee=' + launchData.insee +
+      '&zone=' + encodeURIComponent(launchData.zone || '') +
+      '&lat=' + (GEST_ANALYSE.lat || launchData.lat) +
+      '&lng=' + (GEST_ANALYSE.lng || launchData.lng) +
+      '&adresse=' + encodeURIComponent(launchData.adresse || '');
+    window.location.href = 'faisabilite.html?' + params;
+  }
+}
+
+function deleteCurrentCommune() {
+  if (!current) return;
+  if (!confirm('Supprimer ' + current.nom + ' de la base locale ?')) return;
+  delete communes[current.insee];
+  saveDB();
+  current = null;
+  hideResult();
+  renderSidebar();
+  setStatus('Commune supprimee');
+}
+
+function clearAll() {
+  if (Object.keys(communes).length === 0) return;
+  if (!confirm('Effacer toutes les communes ?')) return;
+  communes = {};
+  saveDB();
+  current = null;
+  hideResult();
+  renderSidebar();
+  setStatus('Base locale videe');
+}
+
+function hideResult() {
+  document.getElementById('card-commune').style.display  = 'none';
+  document.getElementById('card-alldocs').style.display  = 'none';
+  document.getElementById('card-pm').style.display       = 'none';
+  closePdf();
+}
+
+// ══════════════════════════════════════════════════════════
+// LOCALSTORAGE
+// ══════════════════════════════════════════════════════════
+
+function loadDB() {
+  try {
+    var raw = localStorage.getItem('gplu_communes_v2');
+    communes = raw ? JSON.parse(raw) : {};
+  } catch (e) { communes = {}; }
+}
+
+function saveDB() {
+  try { localStorage.setItem('gplu_communes_v2', JSON.stringify(communes)); }
+  catch (e) { console.warn('localStorage plein :', e); }
+}
+
+function triggerImport() {
+  document.getElementById('import-input').click();
+}
+
+function exportJSON() {
+  var blob = new Blob([JSON.stringify(communes, null, 2)], { type: 'application/json' });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'base_plu_' + new Date().toISOString().split('T')[0] + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  setStatus('Export JSON telecharge');
+}
+
+function importJSON(evt) {
+  var file = evt.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var data = JSON.parse(e.target.result);
+      var count = Object.keys(data).length;
+      communes = Object.assign({}, communes, data);
+      saveDB();
+      renderSidebar();
+      setStatus(count + ' commune(s) importee(s)');
+    } catch (err) {
+      setStatus('Erreur : fichier JSON invalide');
+    }
+  };
+  reader.readAsText(file);
+  evt.target.value = '';
+}
+
+// ══════════════════════════════════════════════════════════
+// UTILITAIRES
+// ══════════════════════════════════════════════════════════
+
+function setStatus(msg) {
+  document.getElementById('status-bar').textContent = msg;
+}
+
+function typeTagClass(type) {
+  var t = (type || '').toUpperCase();
+  if (t === 'PLUI' || t === 'PLUIH') return 'tag-plui';
+  if (t === 'PLU')  return 'tag-plu';
+  if (t === 'POS')  return 'tag-pos';
+  if (t === 'CC')   return 'tag-cc';
+  return 'tag-rnu';
+}
+
+function statutClass(statut) {
+  if (/production|approuve/i.test(statut)) return 's-approuve';
+  if (/arrete/i.test(statut))              return 's-arrete';
+  return 's-other';
+}
+
+function formatDate(d) {
+  if (!d) return '';
+  try {
+    if (/^\d{8}$/.test(d)) {
+      return d.slice(6, 8) + '/' + d.slice(4, 6) + '/' + d.slice(0, 4);
+    }
+    var dt = new Date(d);
+    if (isNaN(dt.getTime())) return d;
+    return dt.toLocaleDateString('fr-FR');
+  } catch (e) { return d; }
+}
+
+function fmtShort(iso) {
+  if (!iso) return '';
+  try {
+    return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+  } catch (e) { return ''; }
+}
+
+function escHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function escAttr(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// ══════════════════════════════════════════════════════════
+// VIEWER SCANS PDF — afficher les captures des pages du reglement
+// ══════════════════════════════════════════════════════════
+var scanManifest = null;
+var scanIdx = 0;
+
+async function chargerScans(insee, zone) {
+  var path = 'pdf_scans/' + insee + '_' + zone + '/manifest.json';
+  try {
+    var resp = await fetch(path);
+    if (!resp.ok) return null;
+    var data = await resp.json();
+    return data;
+  } catch(e) { return null; }
+}
+
+function ouvrirScanViewer(startIdx) {
+  if (!scanManifest || !scanManifest.scans || !scanManifest.scans.length) {
+    showToast('Aucun scan disponible'); return;
+  }
+  scanIdx = startIdx || 0;
+  var overlay = document.getElementById('scan-viewer-overlay');
+  overlay.style.display = 'flex';
+  afficherScan();
+  // Fermer avec Escape
+  document.addEventListener('keydown', scanKeyHandler);
+}
+
+function closeScanViewer() {
+  document.getElementById('scan-viewer-overlay').style.display = 'none';
+  document.removeEventListener('keydown', scanKeyHandler);
+}
+
+function scanKeyHandler(e) {
+  if (e.key === 'Escape') closeScanViewer();
+  if (e.key === 'ArrowLeft') scanNav(-1);
+  if (e.key === 'ArrowRight') scanNav(1);
+}
+
+function scanNav(dir) {
+  if (!scanManifest) return;
+  scanIdx = (scanIdx + dir + scanManifest.scans.length) % scanManifest.scans.length;
+  afficherScan();
+}
+
+function afficherScan() {
+  var s = scanManifest.scans[scanIdx];
+  var base = 'pdf_scans/' + scanManifest.insee + '_' + scanManifest.zone + '/';
+  document.getElementById('scan-viewer-img').src = base + s.file;
+  document.getElementById('scan-viewer-title').textContent = s.article + ' — ' + s.label;
+  document.getElementById('scan-viewer-sub').textContent = scanManifest.plui + ' · Page ' + s.page;
+  document.getElementById('scan-viewer-count').textContent = (scanIdx + 1) + '/' + scanManifest.scans.length;
+  // Miniatures
+  var thumbs = document.getElementById('scan-viewer-thumbs');
+  thumbs.innerHTML = scanManifest.scans.map(function(sc, i) {
+    var active = i === scanIdx ? 'border:2px solid #2563eb;opacity:1' : 'border:2px solid transparent;opacity:.5';
+    return '<div onclick="scanIdx=' + i + ';afficherScan()" style="cursor:pointer;flex-shrink:0;' + active + ';border-radius:4px;overflow:hidden;transition:all .2s">' +
+      '<img src="' + base + sc.file + '" style="height:60px;width:auto;display:block" title="' + escAttr(sc.article + ' — ' + sc.label) + '">' +
+      '</div>';
+  }).join('');
+}
+
+function ouvrirScanParCritere(critere) {
+  if (!scanManifest || !scanManifest.scans) return;
+  var idx = scanManifest.scans.findIndex(function(s) { return s.critere === critere; });
+  ouvrirScanViewer(idx >= 0 ? idx : 0);
+}
+
+// Mettre a jour la section regles pour inclure les icones de scan
+async function majScansRegles() {
+  if (!current) return;
+  var zone = '';
+  if (current.zoneUrba) zone = current.zoneUrba.libelle || current.zoneUrba.libelong || '';
+  if (GEST_ANALYSE.zone) zone = GEST_ANALYSE.zone;
+  if (!zone) return;
+
+  scanManifest = await chargerScans(current.insee, zone);
+  var scanBtn = document.getElementById('gest-btn-scans');
+  if (scanBtn) {
+    if (scanManifest && scanManifest.scans && scanManifest.scans.length) {
+      scanBtn.style.display = 'inline-flex';
+      scanBtn.textContent = '\uD83D\uDCF7 ' + scanManifest.scans.length + ' scans PDF';
+    } else {
+      scanBtn.style.display = 'none';
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// DEMARRAGE
+// ══════════════════════════════════════════════════════════
+
+init();
+
+</script>
+<script src="sync.js"></script>
+<script src="feedback.js"></script>
+</body>
+</html>
